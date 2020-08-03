@@ -1,0 +1,29 @@
+{
+    "name": "OneWire",
+    "description": "Easy create own multi sensor/actor devices with 1-Wire protocol communication with support for Arduino, Linux kernel and OWFS.",
+    "keywords": "onewire, 1-wire, bus, sensor, temperature, ibutton, actor, owfs, w1, ow, iot",
+    "authors": [
+        {
+            "name": "Ondrej Lycka",
+            "email": "info@seahu.cz",
+            "url": "http://www.seahu.cz",
+            "maintainer": true
+        },
+        {
+            "name": "Erik Palsbo",
+            "email": "erik@palsbo.com",
+            "url": "http://palsbo.com/arduino/OneWireSlave.html",
+            "maintainer": false
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/seahu/OneWireSlave0xCD"
+    },
+    "version": "1.1.1",
+    "homepage": "https://github.com/seahu/OneWireSlave0xCD",
+    "frameworks": "Arduino",
+    "examples": [
+        "examples/*/*.ino"
+    ]
+}

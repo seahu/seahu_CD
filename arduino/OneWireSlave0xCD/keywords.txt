@@ -1,0 +1,56 @@
+#######################################
+# Syntax Coloring Map For OneWire
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+OneWireSlave	KEYWORD1
+OneWireSlave0xCD	KEYWORD1
+value0xCD	KEYWORD1
+section	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+#### OneWireSlave ###
+begin	KEYWORD2
+crc8	KEYWORD2
+read	KEYWORD2
+write	KEYWORD2
+reset	KEYWORD2
+waitToCmd	KEYWORD2
+
+### OneWireSlave0xCD ###
+ini	KEYWORD2
+write_new_value	KEYWORD2
+foreground_measure	KEYWORD2
+save_default_values	KEYWORD2
+save_values	KEYWORD2
+load_values	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+### OneWireSlave0xDD ###
+#### CONTROLL BYTE FLAGS ####
+C_READ	LITERAL1
+C_WRITE	LITERAL1
+C_ALARM	LITERAL1
+C_MEMROY	LITERAL1
+C_BOOL	LITERAL1
+C_U32BIT	LITERAL1
+C_32BIT	LITERAL1
+C_ALARM_STATUS	LITERAL1
+C_MIN_ALARM	LITERAL1
+C_MAX_ALARM	LITERAL1
+LOCK	LITERAL1
+UNLOCK	LITERAL1

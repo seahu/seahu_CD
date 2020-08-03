@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For OneWireUni
+#######################################
+
+#######################################
+# Class (KEYWORD1)
+#######################################
+
+OneWireMaster0xCD	KEYWORD1
+val	KEYWORD4
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+# methods names in commond
+setAddr	KEYWORD2
+setSection KEYWORD2
+get_number_of_sections	KEYWORD2
+get_status_byte	KEYWORD2
+print_status_byte	KEYWORD2
+is_ready	KEYWORD2
+start_measure	KEYWORD2
+start_measure_all KEYWORD2
+get_measured_value	KEYWORD2
+get_actual_value	KEYWORD2
+set_actual_value	KEYWORD2
+get_min_alarm_value	KEYWORD2
+set_min_alarm_value	KEYWORD2
+get_max_alarm_value	KEYWORD2
+set_max_alarm_value	KEYWORD2
+get_note	KEYWORD2
+set_note	KEYWORD2
+get_description	KEYWORD2
+get_device_description	KEYWORD2
+print_value	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+#FILE_READ	LITERAL1

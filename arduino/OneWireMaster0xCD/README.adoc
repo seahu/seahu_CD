@@ -1,0 +1,28 @@
+= Keyboard Library for Arduino =
+
+This library allows access 1-wire sensors and output devicec whitch
+used open source 1-Wire universal measuring sheme.
+This sheme define universal comunication structure form many
+kinds of sensors and oputput devices (as GPIO, pwm, DA, RGB,..).
+Is also aviable open source library for easy create own slave 1-Wire devices.
+
+For more information about this library and 1-Wire universal comunication sheme
+https://www.github.com/seahu/OneWireUni
+
+== License ==
+
+Copyright (c) Seahu.cz . All right reserved.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA

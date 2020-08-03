@@ -11,5 +11,7 @@ Contain:
     - OneWireSlave0xCD.h contain function for easy create multi sensors/actors 1-wire slave devices
 - arduino examples howto use the 1-Wire slave devices from master side.
 - OWFS (One wire file system) with supprot with this 1-Wire slave devices.
+    at https://github.com/seahu/owfs
 - Linux kerne with supprot with this 1-Wire slave devices. (coming soon)
+    at https://github.com/seahu/linux
 - Documnetation
