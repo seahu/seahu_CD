@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# stahnout hlviskove soubory
+apt-get update
+apt-get install linux-headers-$(uname -r)
+
+cd w1_seahu_cd
+
+#zkompilovat modul
+make
+
+#zkopirovat mezi ostani moduly
+#nejdrive vytvoreni adresare
+mkdir -p /lib/modules/$(uname -r)/kernel/drivers/w1/slaves
+#potom nakopirovani
+cp w1_seahu_cd.ko /lib/modules/$(uname -r)/kernel/drivers/w1/slaves/
+
+#pridat do seznamu modulu pripojenych pri spusteni systemu
+echo "nover_df.ko" >> /etc/modules
