@@ -149,6 +149,7 @@ TIMER_INT {
                 if (ByteP_ >= 8) {
                   //mode = OWM_SLEEP; //all bits processed // odzkousrt apozdeji smazat
                   mode_ = OWM_READ_COMMAND; //same? get next command
+                  _OW_alarm=0;
                   _OW_rc=1;
                   cbuf_ = 0;
                   rxBuffer_=&cbuf_;
@@ -237,6 +238,7 @@ TIMER_INT {
             case 0xA5: // Resume command
               if (!_OW_rc) {
                 mode_ = OWM_READ_COMMAND; //same? get next command
+                _OW_alarm=0;
                 _OW_rc=1;
                 cbuf_ = 0;
                 rxBuffer_=&cbuf_;
@@ -259,6 +261,7 @@ TIMER_INT {
             bitp_ = 1;
             if (ByteP_ >= 8) {
               mode_ = OWM_READ_COMMAND; //same? get next command
+              _OW_alarm=0;
               _OW_rc=1;
               cbuf_ = 0;
               rxBuffer_=&cbuf_;

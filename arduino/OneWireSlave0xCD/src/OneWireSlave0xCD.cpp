@@ -310,10 +310,10 @@ void cmd_0xF8__finish(){
     OW_send_bytes(buf_ow_uni_, 32, &ow__.waitToCmd);
   }
   else {
-    buf_ow_uni_[0]='A';
-    buf_ow_uni_[1]=0;
-    OW_send_bytes(buf_ow_uni_, 32, &ow__.waitToCmd);
-    //OW_send_bytes((p_sections_+actual_section_)->memory, 32, &ow__.waitToCmd);
+    //buf_ow_uni_[0]='A';
+    //buf_ow_uni_[1]=0;
+    //OW_send_bytes(buf_ow_uni_, 32, &ow__.waitToCmd);
+    OW_send_bytes((p_sections_+actual_section_)->memory, 32, &ow__.waitToCmd);
   }
 }
 
@@ -479,10 +479,10 @@ void ow_main_0xDD(uint8_t cmd)
       cmd_0xF5(); // read from ACTUAL_VALUE register (1-4Byte depends on setting in control register)
       break;
     case 0xF7:
-      cmd_0xF7(); // read from DESCRIPTION register (32Byte)
+      cmd_0xF7(); // read from DESCRIPTION register (64Byte)
       break;
     case 0xF8:
-      cmd_0xF8(); // read from NOTE register (64Bytes)
+      cmd_0xF8(); // read from NOTE register (32Bytes)
       break;
     case 0xFA:
       cmd_0xFA(); // read from MIN_ALARM_VALUE register (1-4Bytes depends on setting in control register)
@@ -497,7 +497,7 @@ void ow_main_0xDD(uint8_t cmd)
       cmd_0x55(); // write into ACTUAL_VALUE (1-4Bytes depends on setting in control register)
       break;
     case 0x58:
-      cmd_0x58(); // write into NOTE register (64Bytes)
+      cmd_0x58(); // write into NOTE register (32Bytes)
       break;
     case 0x5A:
       cmd_0x5A(); // write into MIN_ALARM_VALUE (1-4 Byte depends on setting in control register)
