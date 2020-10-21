@@ -97,7 +97,16 @@ public:
      * get/set ACTUAL_VALUE from actual section
      */
     bool get_actual_value(val *value);
+    bool get_actual_value(val *value,uint8_t section);
     bool set_actual_value(val *value);
+    bool set_actual_value(val *value, uint8_t section);
+    bool set_actual_value(uint32_t value, uint8_t section);
+    bool set_actual_value(int32_t value, uint8_t section);
+    bool set_actual_value(uint16_t value, uint8_t section);
+    bool set_actual_value(int16_t value, uint8_t section);
+    bool set_actual_value(uint8_t value, uint8_t section);
+    bool set_actual_value(int8_t value, uint8_t section);
+
 
     /*
      * print value by type defined into control register for debug purpouse

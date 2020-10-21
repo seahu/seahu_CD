@@ -167,14 +167,62 @@ bool OneWireMaster0xCD::get_measured_value(val *value){
 }
 
 /*
- * get/set ACTUAL_VALUE from actual section
+ * get ACTUAL_VALUE from actual section
  */
 bool OneWireMaster0xCD::get_actual_value(val *value){
   return get_value(value, 0xF5);
 }
+bool OneWireMaster0xCD::get_actual_value(val *value, uint8_t section){
+  setSection(section);
+  return get_value(value, 0xF5);
+}
+/*
+ * set ACTUAL_VALUE from actual section
+ */
 bool OneWireMaster0xCD::set_actual_value(val *value){
   return set_value(value,0x55, 0);
 }
+bool OneWireMaster0xCD::set_actual_value(val *value, uint8_t section){
+  setSection(section);
+  return set_value(value,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(uint32_t value, uint8_t section){
+  val newvalue;
+  newvalue.u32bit=value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(int32_t value, uint8_t section){
+  val newvalue;
+  newvalue.s32bit=value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(uint16_t value, uint8_t section){
+  val newvalue;
+  newvalue.u32bit=(uint32_t)value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(int16_t value, uint8_t section){
+  val newvalue;
+  newvalue.s32bit=(int32_t)value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(uint8_t value, uint8_t section){
+  val newvalue;
+  newvalue.u32bit=(uint32_t)value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+bool OneWireMaster0xCD::set_actual_value(int8_t value, uint8_t section){
+  val newvalue;
+  newvalue.s32bit=(int32_t)value;
+  setSection(section);
+  return set_value(&newvalue,0x55, 0);
+}
+
 
 /*
  * print value by type defined into control register for debug purpouse
