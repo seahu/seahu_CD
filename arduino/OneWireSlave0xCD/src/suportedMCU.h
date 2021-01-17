@@ -11,7 +11,7 @@
  * 
  *  for new MCU must be defined:
  *  // OW_global setting
- *  #define OW_ADD_TO_GLOAL // something declaration of global variables need for server new MCU
+ *  #define OW_ADD_TO_GLOBAL // something declaration of global variables need for server new MCU
  *  //Pin setting
  *  #define CONF_PORT    // prepare 1-Wire pin as input on start (may set more registers)
  *  #define SET_LOW      // set 1-Wire line to low (as short as possible)
@@ -51,13 +51,13 @@
 
 #ifdef __AVR_ATtiny85__
   /*
-   * NOT TESTED YET
+   *
    *                   AVR_ATtiny85
    *                  +------\/-----+   
    *   (RESET) N/U 1 -|1 PB5   VCC 8|- 8 VCC
    *        A3  D3 2 -|2 PB3   PB2 7|- 7 D2 A1 (SLC,INT0) !prefered for OW!
    * (OC1B) A2 #D4 3 -|3 PB4   PB1 6|- 6 #D1   (MISO,OC0B,AIN1,OC1A)
-   *        GND D5 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)
+   *           GND 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)
    *                  +-------------+
    *        
    *   #DX - meens pin with PWM
@@ -71,9 +71,12 @@
    *    TIMER FOR OW:
    *    timer  | comparator             | colision
    *    -------------------------------------------
-   *    Timer0 | TOV0 (timer overflow) | arduino dely(), millis() functions  and #D0 PWM
-   *    Timer0 | OCR0A                 | #D0 PWM
-   *    Timer0 | OCR0B                 | (#D1 PWM nay be, because this pim may be connect to conflict OC0B or no conflict OC1A, depents how to use arduino pwm function, must be test)
+   *    Timer0 | TOV0 (timer overflow) | arduino dely(), millis() functions  and #D0, #D1 PWM (cannot be used witch arduino core - colision with time function in arduino/hardware/arduino/avr/cores/arduino/wiring.c)
+   *    Timer0 | OCR0A                 | #D0, #D1 PWM (OCR0A and OCR0B share PWM configuration, if one set to PWM, other can't be user other way. Because in PWM mode OCR0A and OCR0B use doble buffered registers and aplicate new value after counter overflow)
+   *    Timer0 | OCR0B                 | (#D0, #D1 PWM nay be, because this pim may be connect to conflict OC0B or no conflict OC1A, depents how to use arduino pwm function, must be test)
+   *    Timer1 | OCR1A                 | <-- best choice
+   *    Timer1 | OCR1B                 | #D4 PWM
+   *    
    *    best choice is Timer0-OCR0B becouse teoreticanly meby be without any conflict
    *    
    *    arduino-AVR_ATtiny85:
@@ -86,11 +89,12 @@
    *    More usefull information about ATtiny and arduino:
    *    https://www.arduinoslovakia.eu/page/attiny85
    */
+#define __AVR_ATtiny85__
   // OW_global setting
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
   // OW_PORT Pin 7  - PB2
-  //Pin setting
+  //Pin setting 
   #define OW_PORT PORTB //1 Wire Port
   #define OW_PIN PINB //1 Wire Pin as number
   #define OW_DDR DDRB  //pin direction register
@@ -108,29 +112,45 @@
   #define PIN_INT     ISR(INT0_vect)  // the interrupt service routine
   //Timer setting and interrupt
   // on select:
-            // #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
-            // #define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0 PWM)
-            #define Timer0_OCR0B // select timer0 with comparator B interrupt (may be colison with D1 PWM, but not testetd yet) <-- best choice
+            //#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() and PWN on D0.D1 with use timer0 (D1 steel can use PWM by timer1, but not from arduino librrary) )
+            //#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0,D1 PWM (D1 steel can use PWM by timer1, but not from arduino librrary))
+            //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D0,D1 PWM, (D1 steel can use PWM by timer1, but not from arduino librrary))
+            #define Timer1_OCR1A // select timmer1 with comparator A interrupt <-- best choice
+            //#define Timer1_OCR1B // select timmer1 with comparator B interrupt (colision with D4 PWM)
   #ifdef Timer0_TOV0
-    #define CONF_TIMER   TCCR0B=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
+    #define CONF_TIMER   {TCCR0A &= ~(1<<WGM00) & ~(1<<WGM01); TCCR0B &= ~(1<<WGM02); TCCR0B=(1<<CS00)|(1<<CS01);} // Off PWM, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us
     #define EN_TIMER     {TIMSK |= (1<<TOIE0); TIFR|=(1<<TOV0);} //enable timer interrupt
     #define DIS_TIMER    TIMSK  &= ~(1<<TOIE0); // disable timer interrupt
     #define TIMER_INT    ISR(TIM0_OVF_vect) //the timer interrupt service routine
     #define SET_TIMER(x) TCNT0 = ~( x ) // set Timer0 by the specified value below
   #endif
   #ifdef Timer0_OCR0A
-    #define CONF_TIMER   TCCR0B=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
-    #define EN_TIMER     {TIMSK |= (1<<OCIE0A); TIFR|=(1<<OFC0A);} //enable timer interrupt
+    #define CONF_TIMER   {TCCR0A &= ~(1<<COM0A0) & ~(1<<COM0A1) & ~(1<<WGM00) & ~(1<<WGM01); TCCR0B &= ~(1<<WGM02);TCCR0B=(1<<CS00)|(1<<CS01);} // timer normal mode (no connect to pin), Off PWM, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us
+    #define EN_TIMER     {TIMSK |= (1<<OCIE0A); TIFR|=(1<<OCF0A);} //enable timer interrupt
     #define DIS_TIMER    TIMSK  &= ~(1<<OCIE0A); // disable timer interrupt
     #define TIMER_INT    ISR(TIM0_COMPA_vect) //the timer interrupt service routine
     #define SET_TIMER(x) OCR0A = TCNT0 +  x // set compare register for new time
   #endif
   #ifdef Timer0_OCR0B
-    #define CONF_TIMER   TCCR0B=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
+    #define CONF_TIMER   {TCCR0A &= ~(1<<COM0B0) & ~(1<<COM0B1) & ~(1<<WGM00) & ~(1<<WGM01); TCCR0B &= ~(1<<WGM02); TCCR0B=(1<<CS00)|(1<<CS01); TCCR0B &= ~(1<<CS02);} // timer normal mode (no connect to pin), Off PWM, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us
     #define EN_TIMER     {TIMSK |= (1<<OCIE0B); TIFR|=(1<<OCF0B);} //enable timer interrupt
     #define DIS_TIMER    TIMSK  &= ~(1<<OCIE0B); // disable timer interrupt
     #define TIMER_INT    ISR(TIM0_COMPB_vect) //the timer interrupt service routine
-    #define SET_TIMER(x) OCR0B = TCNT0 +  x // set compare register for new time
+    #define SET_TIMER(x) OCR0B = TCNT0 + x // set compare register for new time
+  #endif
+  #ifdef Timer1_OCR1A
+    #define CONF_TIMER   {TCCR1 &= ~(1<<CTC1) & ~(1<<PWM1A) & ~(1<<COM1A1) & ~(1<<COM1A0) & ~(1<<CS13); TCCR1|= (1<<CS12) | (1<<CS11) | (1<<CS10); PLLCSR=0;}  // Off top by OCR1C, Off PWM on  OCR1A, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us, clk from system
+    #define EN_TIMER     {TIMSK |= (1<<OCIE1A); TIFR|=(1<<OCF1A);} //enable timer interrupt
+    #define DIS_TIMER    TIMSK  &= ~(1<<OCIE1A); // disable timer interrupt
+    #define TIMER_INT    ISR(TIM1_COMPA_vect) //the timer interrupt service routine
+    #define SET_TIMER(x) OCR1A = TCNT1 +  x // set compare register for new time
+  #endif
+  #ifdef Timer1_OCR1B
+    #define CONF_TIMER   {GTCCR &= ~(1<<PWM1B) & ~(1<<COM1B1) & ~(1<<COM1B0); TCCR1 &= ~(1<<CTC1) & ~(1<<CS13); TCCR1|= (1<<CS12) | (1<<CS11) | (1<<CS10); PLLCSR=0;}  // Off top by OCR1C, Off PWM on  OCR1B, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us, clk from system
+    #define EN_TIMER     {TIMSK |= (1<<OCIE1B); TIFR|=(1<<OCF1B);} //enable timer interrupt
+    #define DIS_TIMER    TIMSK  &= ~(1<<OCIE1B); // disable timer interrupt
+    #define TIMER_INT    ISR(TIM1_COMPB_vect) //the timer interrupt service routine
+    #define SET_TIMER(x) OCR1B = TCNT1 +  x // set compare register for new time
   #endif
   //Analog comparator (for check loss power)
   // on select:
@@ -187,7 +207,7 @@
   // OW_global setting
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
-  // OW_PORT Pin 7  - PB2
+  // OW_PORT Pin 5  - PB2
   //Pin setting 
   #define OW_PORT PORTB //1 Wire Port
   #define OW_PIN PINB //1 Wire Pin as number
