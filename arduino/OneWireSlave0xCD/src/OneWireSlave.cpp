@@ -113,6 +113,8 @@ void OneWireSlave::waitToCmd(){
 
 
 TIMER_INT {
+  //SET_LOW;//
+  //return;//
   //Ask input line sate
   uint8_t p = READ_PIN;
   uint8_t mix;

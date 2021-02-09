@@ -258,7 +258,7 @@
   /* 
    *  Arduino NG or later
    *  ATMEL ATMEGA8 & 168 / ARDUINO
-   *  NOT TESTED YET
+   *  TESTED OK
    *                        
    *                                 +-------\/-------+
    *                   (RESET)      -|1  PC6    PC5 28|- A5   (SCL)   
@@ -274,7 +274,7 @@
    *                   (T1)   +#D5  -|11 PD5    PB4 18|- D12  (MISO)
    *                   (AIN0) +#D6  -|12 PD6    PB3 17|- #D11 (MOSI,OC2)
    *                   (AIN1)   D7  -|13 PD7    PB2 16|- #D10 (OC1B)
-   *                            D8  -|14 PB0    PB1 15|- #D9  (OC1A)
+   *                   (IPC1)   D8  -|14 PB0    PB1 15|- #D9  (OC1A)
    *                                 +----------------+
    * 
    * (#  indicates thw PWM pins)
@@ -323,7 +323,7 @@
   //OW Pin  
   // on select:
             //#define OWpin_PD2  // OW_PORT Pin 4  - PD2 with interrupt INT0
-            #define OWpin_PD3  // OW_PORT Pin 5  - PD2 with interrupt INT1
+            #define OWpin_PD3  // OW_PORT Pin 5  - PD3 with interrupt INT1
   #ifdef OWpin_PD2
     //Pin setting 
     #define OW_PORT PORTD //1 Wire Port
@@ -331,26 +331,26 @@
     #define OW_DDR DDRD  //pin direction register
     #define OW_PIN_MASK (1<<PIND2)  //Pin as bit mask for use in output, input and direction setting registers
     //Pin interrupt 
-    #define EN_OWINT {GIMSK|=(1<<INT0);GIFR|=(1<<INTF0);}  //enable interrupt 
-    #define DIS_OWINT  GIMSK&=~(1<<INT0);  //disable interrupt
+    #define EN_OWINT {GICR|=(1<<INT0);GIFR|=(1<<INTF0);}  //enable interrupt 
+    #define DIS_OWINT  GICR&=~(1<<INT0);  //disable interrupt
     #define SET_RISING MCUCR=(1<<ISC01)|(1<<ISC00);  //set interrupt at rising edge
     #define SET_FALLING MCUCR=(1<<ISC01); //set interrupt at falling edge
-    #define CHK_INT_EN (GIMSK&(1<<INT0))==(1<<INT0) //test if interrupt enabled
+    #define CHK_INT_EN (GICR&(1<<INT0))==(1<<INT0) //test if interrupt enabled
     #define PIN_INT ISR(INT0_vect)  // the interrupt service routine
   #endif
-  #ifdef OWpin_PD3
+  #ifdef OWpin_PD3 (tested OK)
     //Pin setting 
     #define OW_PORT PORTD //1 Wire Port
     #define OW_PIN PIND //1 Wire Pin as number
     #define OW_DDR DDRD  //pin direction register
     #define OW_PIN_MASK (1<<PIND3)  //Pin as bit mask for use in output, input and direction setting registers
     //Pin interrupt 
-    #define EN_OWINT {GIMSK|=(1<<INT1);GIFR|=(1<<INTF1);}  //enable interrupt 
-    #define DIS_OWINT  GIMSK&=~(1<<INT1);  //disable interrupt
-    #define SET_RISING MCUCR=(1<<ISC11)|(1<<ISC10);  //set interrupt at rising edge
-    #define SET_FALLING MCUCR=(1<<ISC11); //set interrupt at falling edge
-    #define CHK_INT_EN (GIMSK&(1<<INT1))==(1<<INT1) //test if interrupt enabled
-    #define PIN_INT ISR(INT0_vect)  // the interrupt service routine
+    #define EN_OWINT {GICR|=(1<<INT1);GIFR|=(1<<INTF1);}  //enable interrupt 
+    #define DIS_OWINT  GICR&=~(1<<INT1);  //disable interrupt
+    #define SET_RISING MCUCR|=(1<<ISC11)|(1<<ISC10);  //set interrupt at rising edge
+    #define SET_FALLING { MCUCR|=(1<<ISC11); MCUCR&=~(1<<ISC10);} //set interrupt at falling edge
+    #define CHK_INT_EN (GICR&(1<<INT1))==(1<<INT1) //test if interrupt enabled
+    #define PIN_INT ISR(INT1_vect)  // the interrupt service routine
   #endif
   //Pin setting for all variants
   #define CONF_PORT {OW_DDR&=~OW_PIN_MASK;OW_PORT&=~OW_PIN_MASK;} // set 1-wire pin on start as input
@@ -360,35 +360,72 @@
 
   //Timer setting and interrupt
   // on select:
-            // #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
-            #define Timer2_OCR2 // select interrupt by timer2 who has only one comparator OCR2. (colison with arduino PWM output on D11 ) <-- best choice
+            //#define Timer0_TOV0  // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
+            //#define Timer1_TOV1  // select timer1 with overflow interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            //#define Timer1_OCR1A // select timer1 with comparator OCR1A interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            //#define Timer1_OCR1B // select timer1 with comparator OCR1B interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            //#define Timer2_TOV2  // select timer2 with overflow interrupt (colison with arduino PWM output on D11 ) (tested OK)
+            #define Timer2_OCR2 // select interrupt by timer2 who has only one comparator OCR2. (colison with arduino PWM output on D11 ) (tested OK) <-- best choice
   #ifdef Timer0_TOV0
-    #define CONF_TIMER TCCR0B=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
+    #define CONF_TIMER TCCR0=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
     #define EN_TIMER {TIMSK |= (1<<TOIE0); TIFR|=(1<<TOV0);} //enable timer interrupt
     #define DIS_TIMER TIMSK  &= ~(1<<TOIE0); // disable timer interrupt
     #define TCNT_REG TCNT0  //register of timer-counter
-    #define TIMER_INT ISR(TIM0_OVF_vect) //the timer interrupt service routine
+    #define TIMER_INT ISR(TIMER0_OVF_vect) //the timer interrupt service routine
     #define SET_TIMER(x)  TCNT_REG = ~( x ) // set Timer0 by the specified value below
+  #endif
+  #ifdef Timer1_TOV1
+    #define TCNT_REG TCNT1  //register of timer-counter
+    #define CONF_TIMER {TCCR1A=0; TCCR1B=~(1<<CS12)&(1<<CS11)|(1<<CS10);} // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
+    #define EN_TIMER {TIMSK |= (1<<TOIE1); TIFR|=(1<<TOV1);} //enable timer interrupt
+    #define DIS_TIMER TIMSK  &= ~(1<<TOIE1); // disable timer interrupt
+    #define TIMER_INT ISR(TIMER1_OVF_vect) //the timer interrupt service routine
+    #define SET_TIMER(x)  TCNT_REG = ~( x ) // set compare register for new time
+  #endif
+  #ifdef Timer1_OCR1A
+    #define TCNT_REG TCNT1  //register of timer-counter
+    #define OCR OCR1A // register of compare with timee-counter
+    #define CONF_TIMER {TCCR1A=0; TCCR1B=~(1<<CS12)&(1<<CS11)|(1<<CS10);} // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
+    #define EN_TIMER {TIMSK |= (1<<OCIE1A); TIFR|=(1<<OCF1A);} //enable timer interrupt
+    #define DIS_TIMER TIMSK  &= ~(1<<OCIE1A); // disable timer interrupt
+    #define TIMER_INT ISR(TIMER1_COMPA_vect) //the timer interrupt service routine
+    #define SET_TIMER(x)  OCR = TCNT_REG +  x // set compare register for new time
+  #endif
+  #ifdef Timer1_OCR1B
+    #define TCNT_REG TCNT1  //register of timer-counter
+    #define OCR OCR1B // register of compare with timee-counter
+    #define CONF_TIMER {TCCR1A=0; TCCR1B=~(1<<CS12)&(1<<CS11)|(1<<CS10);} // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
+    #define EN_TIMER {TIMSK |= (1<<OCIE1B); TIFR|=(1<<OCF1B);} //enable timer interrupt
+    #define DIS_TIMER TIMSK  &= ~(1<<OCIE1B); // disable timer interrupt
+    #define TIMER_INT ISR(TIMER1_COMPB_vect) //the timer interrupt service routine
+    #define SET_TIMER(x)  OCR = TCNT_REG +  x // set compare register for new time
+  #endif
+  #ifdef Timer2_TOV2
+    #define TCNT_REG TCNT2  //register of timer-counter
+    #define CONF_TIMER TCCR2=(1<<CS22); // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
+    #define EN_TIMER {TIMSK |= (1<<TOIE2); TIFR|=(1<<TOV2);} //enable timer interrupt
+    #define DIS_TIMER TIMSK  &= ~(1<<TOIE2); // disable timer interrupt
+    #define TIMER_INT ISR(TIMER2_OVF_vect) //the timer interrupt service routine
+    #define SET_TIMER(x)  TCNT_REG = ~( x ) // set compare register for new time
   #endif
   #ifdef Timer2_OCR2
     #define TCNT_REG TCNT2  //register of timer-counter
     #define OCR OCR2 // register of compare with timee-counter
-    #define CONF_TIMER TCCR2=(1<<CS20); // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
+    #define CONF_TIMER TCCR2=(1<<CS22); // 8mhz /64 couse 8 bit Timer interrupt every 8us (Timer2 has anotger prescalar then timer0, CS22=1,CS21=0,CS20=0 => clk/64)
     #define EN_TIMER {TIMSK |= (1<<OCIE2); TIFR|=(1<<OCF2);} //enable timer interrupt
     #define DIS_TIMER TIMSK  &= ~(1<<OCIE2); // disable timer interrupt
-    #define TIMER_INT ISR(TIM2_COMP_vect) //the timer interrupt service routine
+    #define TIMER_INT ISR(TIMER2_COMP_vect) //the timer interrupt service routine
     #define SET_TIMER(x)  OCR = TCNT_REG +  x // set compare register for new time
   #endif
   //Analog comparator (for check loss power)
   //If voltage on AIN1 pin will be smaller than internal reference 2,56V then cause interrupt.
   // on select:
-	#define Enable_Analog_comapartor
+  #define Enable_Analog_comapartor
   #ifdef Enable_Analog_comapartor
     #define CONF_AC      {ACSR &= ~(1<<ACD); ACSR |= (1<<ACBG)| (1<<ACI) | (1<<ACIE) | (1<<ACIS1)| (1<<ACIS0); SFIOR &=~(1<<ACME);} // prepare analog comparator to check loss power
-    #define AC_INT       ISR(ANALOG_COMP_vect) // the analog comparator interrupt service routine
+    #define AC_INT       ISR(ANA_COMP_vect) // the analog comparator interrupt service routine
   #endif
 #endif
-
 
 
 #ifdef __AVR_ATmega328P__
