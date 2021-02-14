@@ -59,7 +59,7 @@
    * !prefered for OW! (INT1) +#D3  -|5  PD3    PC1 24|- A1 --------------- RED1           \\
    *                            D4  -|6  PD4    PC0 23|- A0 --------------+ WHITE    +-----|<|------------o + 12V  (and RED1, REEN1, BLUE1, RED2, GREEN2, BLUE2 have some circuit)
    *                                -|7  VCC    GND 22|-                  |          |   White - LED strip
-   *                                -|8  GND   AREF 21|-                  +--------|<
+   *                                -|8  GND   AREF 21|-                  +--------|<   (transitor N-kanal FU120N)
    *                   (XTAL1) *D20 -|9  PB6   AVCC 20|-                            _|_
    *                   (XTAL2) *D21 -|10 PB7    PB5 19|- D13  (SCK)
    *                   (T1)   +#D5  -|11 PD5    PB4 18|- D12  (MISO) ------ GREEN2

@@ -38,6 +38,10 @@ void OneWireMaster0xCD::setAddr(uint8_t addrres[]){
 }
 
 void OneWireMaster0xCD::setSection(uint8_t section_number){
+  #ifdef OneWireMaster0xCDDebug
+  Serial.print("Set actual section: ");
+  Serial.println(section_number);
+  #endif
   section=section_number;
 }
 

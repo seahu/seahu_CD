@@ -22,7 +22,7 @@
 #include "Arduino.h"
 #include <OneWire.h>
 
-#define OneWireUniDebug // enable debug
+#define OneWireMaster0xCDDebug // enable debug
 
 // union representating more types of actual value
 typedef union {
