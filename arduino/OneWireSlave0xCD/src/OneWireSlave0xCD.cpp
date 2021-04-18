@@ -313,7 +313,8 @@ void cmd_0xF8__finish(){
     //buf_ow_uni_[0]='A';
     //buf_ow_uni_[1]=0;
     //OW_send_bytes(buf_ow_uni_, 32, &ow__.waitToCmd);
-    OW_send_bytes((p_sections_+actual_section_)->memory, 32, &ow__.waitToCmd);
+    //OW_send_bytes((p_sections_+actual_section_)->memory, 32, &ow__.waitToCmd);
+    OW_send_bytes((p_sections_+actual_section_)->memory, 32, &cmd_0xF5__finish); // the same finish as cmd_0xF5__finish, before wait to next cmd reset section alarm
   }
 }
 

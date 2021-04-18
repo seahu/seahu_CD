@@ -22,7 +22,7 @@
 #include "Arduino.h"
 #include <OneWire.h>
 
-#define OneWireMaster0xCDDebug // enable debug
+//#define OneWireMaster0xCDDebug // enable debug
 
 // union representating more types of actual value
 typedef union {
@@ -130,11 +130,14 @@ public:
      */
     bool get_note(char buf[]);
     bool set_note(char buf[]);
+    bool get_note(char buf[], uint8_t section);
+    bool set_note(char buf[], uint8_t section);
     
     /*
      * get section description (!len of buf must be min 32 !)
      */
     bool get_description(char buf[]);
+    bool get_description(char buf[], uint8_t section);
 
    /*
     * get device description (!len of buf must be min 64 !)

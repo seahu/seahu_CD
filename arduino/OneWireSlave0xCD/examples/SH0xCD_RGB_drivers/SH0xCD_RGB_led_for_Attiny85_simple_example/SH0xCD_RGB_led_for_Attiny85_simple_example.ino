@@ -32,7 +32,14 @@
    arduino not have native support for AVR_ATtiny85. This supoort have to add :
    the procedure applies for arduino IDE 1.6.4 and hight
    In menu File/Preferences. In the dialg you fill item Additional Board Manager with: https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json a stiskněte OK. Toto jádro je sice uváděny jako první, ale nedoporučuji ho používat. Bylo první z historických důvodů, ale jeho autor nemá na jeho vývoj tolik času, jako je jádro, zmíněné v odstavci o alternativních jádrech.
-   And then use function ools/Board/Boards Manager. In the list find attiny and install it.
+   And then use function Tools/Board/Boards Manager. In the list find attiny and install it.
+   Beafore complile select:
+    Board: ATtiny25/45/85
+    Procesor: ATtiny85
+    Clock: Internal16MHz
+    Select Programmer: (I use secundary arduino as ISP "Arduino as ISP"
+    Burn Bootloader (this is necessary for set correct MCU clock)
+    Burn by Sketch/Upload Using Programmer
    
    More usefull information about ATtiny and arduino:
     https://www.arduinoslovakia.eu/page/attiny85
@@ -42,19 +49,20 @@
                                    +------\/-----+ 
                     (RESET) N/U 1 -|1 PB5   VCC 8|- 8 VCC
                          A3  D3 2 -|2 PB3   PB2 7|- 7 D2 A1 (SLC,INT0) ----> 1-Wire
-   Blue led  <--- (OC1B) A2 #D4 3 -|3 PB4   PB1 6|- 6 #D1   (MISO,OC0B,AIN1,OC1A)----> Green led
-                            GND 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)----> Red led
+   Blue led  <--- (OC1B) A2 #D4 3 -|3 PB4   PB1 6|- 6 #D1   (MISO,OC0B,AIN1,OC1A)----> Red led
+                            GND 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)----> Green led
                                    +-------------+               
 */
 
 //  generate Device ID based on compile date and time
-#define __AVR_ATtiny85__
+//#define __AVR_ATtiny85__
 #include "OneWireSlave0xCD.h"
 
 #define CONT_OF_SECTIONS 2 // number of section (sensors or actors)
-#define PIN_R 0
-#define PIN_G 1
+#define PIN_R 1
+#define PIN_G 0
 #define PIN_B 4
+#define PIN_W 3 //(not use in this example)
 
 OneWireSlave0xCD ow; //define One Wire object
 
@@ -122,16 +130,31 @@ void setup() {
   analogWrite(PIN_G, 0);
   pinMode(PIN_B, OUTPUT);
   analogWrite(PIN_B, 0);
+  pinMode(PIN_W, OUTPUT); //(not use in this example)
+  digitalWrite(PIN_W, LOW); //(not use in this example)
   ow.ini(CONT_OF_SECTIONS, sections, device_description); // intialization of one wire interface in bacground throught interrupt
 
+  // Example how to use direct control PWM at AT tiny85 by write into MCU registers
+  // ------------------------------------------------------------------------------
+  // SETUP
+  //timer 0
+  //TCCR0A = 2<<COM0A0 | 2<<COM0B0 | 3<<WGM00;
+  //TCCR0B = 0<<WGM02 | 3<<CS00; // Optional; already set
+  //tmier 1
+  // Configure counter/timer1 for fast PWM on PB4
+  //GTCCR = 1<<PWM1B | 2<<COM1B0;
+  //TCCR1 = 2<<COM1A0 | 7<<CS10;
+  //OCR1C=255;
+  // SET PWM VALUES
+  //OCR0A=2; //PWM pin #D0
+  //OCR0B=2; //PWM pin #D1
+  //OCR1B=2; //PWM pin #D4
 }
-
-
 
 // main loop 
 void loop() {
   uint32_t Rgb;
-  uint8_t R,G,B;
+  uint8_t R,G,B,W;
   
   Rgb=sections[RGB].actualValue.u32;
   B=(uint8_t)(Rgb & 0xFF); // first 8 bits
@@ -139,11 +162,13 @@ void loop() {
   G=(uint8_t)(Rgb & 0xFF); // first 8 bits
   Rgb=Rgb>>8 ; // 8 bits rotate 
   R=(uint8_t)(Rgb & 0xFF); // first 8 bits
+  Rgb=Rgb>>8 ; // 8 bits rotate (not use in this example)
+  W=(uint8_t)(Rgb & 0xFF); // first 8 bits (not use in this example)
   
-  // print_lcd(lcd_buf); // refresh lcd 
-  analogWrite(PIN_R, R);
+  analogWrite(PIN_R, R);;
   analogWrite(PIN_G, G);
   analogWrite(PIN_B, B);
+  
   
   //save values if need
   check_save_values();

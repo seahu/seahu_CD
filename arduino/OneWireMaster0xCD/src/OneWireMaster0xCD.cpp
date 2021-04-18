@@ -279,12 +279,21 @@ bool OneWireMaster0xCD::get_note(char buf[]){
   #endif
   return true;
 }
+bool OneWireMaster0xCD::get_note(char buf[], uint8_t section){
+  setSection(section);
+  return get_note(buf);
+}
+
 bool OneWireMaster0xCD::set_note(char buf[]){
   if (write_uni(0x58, &section, buf, 32, 1000)==false) {
 	Serial.println("zapis se nepovedl");
 	return false;
   }
   return true;
+}
+bool OneWireMaster0xCD::set_note(char buf[], uint8_t section){
+  setSection(section);
+  return set_note(buf);
 }
 
 /*
@@ -296,6 +305,10 @@ bool OneWireMaster0xCD::get_description(char buf[]){
   Serial.println(buf);
   #endif
   return true;
+}
+bool OneWireMaster0xCD::get_description(char buf[], uint8_t section){
+  setSection(section);
+  return get_description(buf);
 }
 
 /*

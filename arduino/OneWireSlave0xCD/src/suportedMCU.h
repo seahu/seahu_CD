@@ -48,7 +48,7 @@
             //#define __AVR_ATmega32U4__     // auto select by arduino IDE TESY OK
             //#define __ESP32__              // NOT TESTED select manualy NO TEST YET
             
-
+//#define __AVR_ATtiny85__   // uncomnet if not automaticaly select by arduino IDE
 #ifdef __AVR_ATtiny85__
   /*
    *
@@ -89,7 +89,6 @@
    *    More usefull information about ATtiny and arduino:
    *    https://www.arduinoslovakia.eu/page/attiny85
    */
-#define __AVR_ATtiny85__
   // OW_global setting
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
@@ -112,11 +111,11 @@
   #define PIN_INT     ISR(INT0_vect)  // the interrupt service routine
   //Timer setting and interrupt
   // on select:
-            //#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() and PWN on D0.D1 with use timer0 (D1 steel can use PWM by timer1, but not from arduino librrary) )
-            //#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0,D1 PWM (D1 steel can use PWM by timer1, but not from arduino librrary))
-            //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D0,D1 PWM, (D1 steel can use PWM by timer1, but not from arduino librrary))
-            #define Timer1_OCR1A // select timmer1 with comparator A interrupt <-- best choice
-            //#define Timer1_OCR1B // select timmer1 with comparator B interrupt (colision with D4 PWM)
+	    //#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() and PWN on D0.D1 with use timer0 (D1 steel can use PWM by timer1, but not from arduino librrary) )
+	    //#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0,D1 PWM (D1 steel can use PWM by timer1, but not from arduino librrary))
+	    //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D0,D1 PWM, (D1 steel can use PWM by timer1, but not from arduino librrary))
+	    #define Timer1_OCR1A // select timmer1 with comparator A interrupt <-- best choice
+	    //#define Timer1_OCR1B // select timmer1 with comparator B interrupt (colision with D4 PWM)
   #ifdef Timer0_TOV0
     #define CONF_TIMER   {TCCR0A &= ~(1<<WGM00) & ~(1<<WGM01); TCCR0B &= ~(1<<WGM02); TCCR0B=(1<<CS00)|(1<<CS01);} // Off PWM, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us
     #define EN_TIMER     {TIMSK |= (1<<TOIE0); TIFR|=(1<<TOV0);} //enable timer interrupt
@@ -154,7 +153,7 @@
   #endif
   //Analog comparator (for check loss power)
   // on select:
-	#define Enable_Analog_comapartor
+	//#define Enable_Analog_comapartor
   #ifdef Enable_Analog_comapartor
     #define CONF_AC      {ACSR &= ~(1<<ACD); ACSR |= (1<<ACBG)| (1<<ACI) | (1<<ACIE) | (1<<ACIS1)| (1<<ACIS0); ADCSRB&=~(1<<ACME);} // prepare analog comparator to check loss power
     #define AC_INT       ISR(ANA_COMP_vect) // the analog comparator interrupt service routine

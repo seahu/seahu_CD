@@ -1,0 +1,3 @@
+git add -A
+git commit -m "add one example for 1-Wire slave device - SH0xCD_2xRGB_1xPWM_1xMotionSensor"
+git push
