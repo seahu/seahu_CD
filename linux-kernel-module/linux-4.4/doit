@@ -16,4 +16,4 @@ mkdir -p /lib/modules/$(uname -r)/kernel/drivers/w1/slaves
 cp w1_seahu_cd.ko /lib/modules/$(uname -r)/kernel/drivers/w1/slaves/
 
 #pridat do seznamu modulu pripojenych pri spusteni systemu
-echo "nover_df.ko" >> /etc/modules
+echo "w1_seahu_cd.ko" >> /etc/modules
