@@ -77,7 +77,7 @@
 
 //  generate Device ID based on compile date and time
 
-#include "SH0xCD_platform.h"
+#include "OneWireSlave0xCD.cpp.h"
 
 #define CONT_OF_SECTIONS 15 // number of section (sensors or actors)
 

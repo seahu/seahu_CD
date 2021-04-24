@@ -89,7 +89,7 @@
 */
 
 /*
- * !!!! BEFORE COMPILE chek suportedMCU.h !!!!
+ * !!!! BEFORE COMPILE chek suportedMCU.h - this is no longer necessary now you can define timer in this file !!!!
  * !-----------------------------------------!
  * This program is writen for AVR_ATtiny85 and for 1-Wire comunication use timer0 with comparatorA therefore 
  * into inside librrary 'OneWireSlave0xCD' in file suportedMCU.h must be comnet/uncomnet lines as showed below
@@ -112,7 +112,8 @@
  *      // on select:
  *       //#define Enable_Analog_comapartor
  */
-#include "OneWireSlave0xCD.h"
+#define Timer0_OCR0A
+#include "OneWireSlave0xCD.cpp.h"
 
 #define CONT_OF_SECTIONS 13 // number of section (sensors or actors)
 #define PIN_SERVO1 0

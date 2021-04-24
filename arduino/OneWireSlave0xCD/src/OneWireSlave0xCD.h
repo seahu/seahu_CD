@@ -1,7 +1,7 @@
 #ifndef OneWireSlave0xCD_h
   #define OneWireSlave0xCD_h
 
-  #include "OneWireSlave.h"
+  #include "OneWireSlave.cpp.h"
   #include <avr/pgmspace.h>
   #include <EEPROM.h>
   /*

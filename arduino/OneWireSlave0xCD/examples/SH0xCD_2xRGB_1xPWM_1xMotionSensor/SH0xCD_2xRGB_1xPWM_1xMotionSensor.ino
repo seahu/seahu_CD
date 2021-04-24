@@ -83,7 +83,7 @@
 
  
 //#define __AVR_ATtiny85__
-#include "OneWireSlave0xCD.h"
+#include "OneWireSlave0xCD.cpp.h"
  
 #define MAIN_DELAY 2 
 

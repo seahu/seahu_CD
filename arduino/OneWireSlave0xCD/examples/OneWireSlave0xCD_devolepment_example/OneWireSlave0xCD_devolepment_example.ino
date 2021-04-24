@@ -50,7 +50,8 @@
 
 //  generate Device ID based on compile date and time
 
-#include "platform.h"
+#define Enable_Analog_comapartor // enable Analog Comaparto for check loss power (check or update suportedMCU.h in OneWireSalve0x55 library)
+#include "OneWireSlave0xCD.cpp.h"
 
 #define CONT_OF_SECTIONS 6 // number of section (sensors or actors)
 #define PIN_COUNT_A 5

@@ -64,7 +64,7 @@
 
 
 //  generate Device ID based on compile date and time
-#include "SH0xCD_platform.h"
+#include "OneWireSlave0xCD.cpp.h"
 
 
 // NeoPixcel for WS2812 leds

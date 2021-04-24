@@ -1,5 +1,6 @@
-#define YY (((__DATE__[9]-'0')*16 + __DATE__[10])-'0')
-#define MMM (\
+#ifndef SERIAL_NUMBER
+	#define YY (((__DATE__[9]-'0')*16 + __DATE__[10])-'0')
+	#define MMM (\
              __DATE__ [2] == '?' ? 1 \
              : __DATE__ [2] == 'n' ? (__DATE__ [1] == 'a' ? 1 : 6) \
              : __DATE__ [2] == 'b' ? 2 \
@@ -11,9 +12,10 @@
              : __DATE__ [2] == 't' ? 16 \
              : __DATE__ [2] == 'v' ? 17 \
              : 18)
-#define DD ( __DATE__[4] == '?' ? 1 : ((__DATE__[4] == ' ' ? 0 : ((__DATE__[4] - '0') * 16)) + __DATE__[5] - '0'))
-#define TT (((__TIME__[0] - '0') * 16) + __TIME__[1] - '0')
-#define MM (((__TIME__[3] - '0') * 16) + __TIME__[4] - '0')
-#define SS (((__TIME__[6] - '0') * 16) + __TIME__[7] - '0')
+	#define DD ( __DATE__[4] == '?' ? 1 : ((__DATE__[4] == ' ' ? 0 : ((__DATE__[4] - '0') * 16)) + __DATE__[5] - '0'))
+	#define TT (((__TIME__[0] - '0') * 16) + __TIME__[1] - '0')
+	#define MM (((__TIME__[3] - '0') * 16) + __TIME__[4] - '0')
+	#define SS (((__TIME__[6] - '0') * 16) + __TIME__[7] - '0')
 
-#define SERIAL_NUMBER YY, MMM, DD, TT, MM, SS
+	#define SERIAL_NUMBER YY, MMM, DD, TT, MM, SS
+#endif

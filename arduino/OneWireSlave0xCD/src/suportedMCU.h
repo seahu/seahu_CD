@@ -41,9 +41,9 @@
 
 // Type of MCU
 // on select:
-            //#define __AVR_ATtiny85__       // NOT TESTED select manulay NO TEST YET
+            //#define __AVR_ATtiny85__       // auto select by arduino IDE TEST OK
             //#define __AVR_ATtiny84__       // NOT TESTED select manualy NO TEST YET
-            ///#define __AVR_ATmega8__       // auto select by arduino IDE NO TEST YET
+            ///#define __AVR_ATmega8__       // auto select by arduino IDE TEST OK
             //#define __AVR_ATmega328P__     // auto select by arduino IDE TEST OK
             //#define __AVR_ATmega32U4__     // auto select by arduino IDE TESY OK
             //#define __ESP32__              // NOT TESTED select manualy NO TEST YET
@@ -85,7 +85,14 @@
    *    the procedure applies for arduino IDE 1.6.4 and hight
    *    In menu File/Preferences. In the dialg you fill item Additional Board Manager with: https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json a stiskněte OK. Toto jádro je sice uváděny jako první, ale nedoporučuji ho používat. Bylo první z historických důvodů, ale jeho autor nemá na jeho vývoj tolik času, jako je jádro, zmíněné v odstavci o alternativních jádrech.
    *    And then use function ools/Board/Boards Manager. In the list find attiny and install it.
-   *    
+   *     Beafore complile select:
+   *      Board: ATtiny25/45/85
+   *      Procesor: ATtiny85
+   *      Clock: Internal16MHz
+   *      Select Programmer: (I use secundary arduino as ISP "Arduino as ISP")
+   *      Burn Bootloader (this is necessary for set correct MCU clock)
+   *      Burn by Sketch/Upload Using Programmer
+   *
    *    More usefull information about ATtiny and arduino:
    *    https://www.arduinoslovakia.eu/page/attiny85
    */
@@ -111,11 +118,22 @@
   #define PIN_INT     ISR(INT0_vect)  // the interrupt service routine
   //Timer setting and interrupt
   // on select:
-	    //#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() and PWN on D0.D1 with use timer0 (D1 steel can use PWM by timer1, but not from arduino librrary) )
-	    //#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0,D1 PWM (D1 steel can use PWM by timer1, but not from arduino librrary))
-	    //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D0,D1 PWM, (D1 steel can use PWM by timer1, but not from arduino librrary))
-	    #define Timer1_OCR1A // select timmer1 with comparator A interrupt <-- best choice
-	    //#define Timer1_OCR1B // select timmer1 with comparator B interrupt (colision with D4 PWM)
+	    #ifndef Timer0_TOV0
+	    #ifndef Timer0_OCR0A
+	    #ifndef Timer0_OCR0B
+	    #ifndef Timer1_OCR1A
+	    #ifndef Timer1_OCR1B
+		// in not defined then set defalt Timmer:
+	    	//#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() and PWN on D0.D1 with use timer0 (D1 steel can use PWM by timer1, but not from arduino librrary) )
+	    	#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0,D1 PWM (D1 steel can use PWM by timer1, but not from arduino librrary))
+	    	//#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D0,D1 PWM, (D1 steel can use PWM by timer1, but not from arduino librrary))
+	    	//#define Timer1_OCR1A // select timmer1 with comparator A interrupt <-- best choice
+	    	//#define Timer1_OCR1B // select timmer1 with comparator B interrupt (colision with D4 PWM)
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
   #ifdef Timer0_TOV0
     #define CONF_TIMER   {TCCR0A &= ~(1<<WGM00) & ~(1<<WGM01); TCCR0B &= ~(1<<WGM02); TCCR0B=(1<<CS00)|(1<<CS01);} // Off PWM, set prescalar 8mhz /64 couse 8 bit Timer interrupt every 8us
     #define EN_TIMER     {TIMSK |= (1<<TOIE0); TIFR|=(1<<TOV0);} //enable timer interrupt
@@ -225,9 +243,16 @@
   #define PIN_INT ISR(INT0_vect)  // the interrupt service routine
   //Timer setting and interrupt
   // on select:
-            // #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
-            // #define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0 PWM)
-            #define Timer0_OCR0B // select timer0 with comparator B interrupt (may be colison with D1 PWM, but not testetd yet) <-- best choice
+	    #ifndef Timer0_TOV0
+	    #ifndef Timer0_OCR0A
+	    #ifndef Timer0_OCR0B
+		// in not defined then set defalt Timmer:
+            	// #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
+            	// #define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D0 PWM)
+            	#define Timer0_OCR0B // select timer0 with comparator B interrupt (may be colison with D1 PWM, but not testetd yet) <-- best choice
+	    #endif
+	    #endif
+	    #endif
   #ifdef Timer0_TOV0
     #define CONF_TIMER TCCR0B=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
     #define EN_TIMER {TIMSK0 |= (1<<TOIE0); TIFR0|=(1<<TOV0);} //enable timer interrupt
@@ -321,8 +346,13 @@
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
   // on select:
-            //#define OWpin_PD2  // OW_PORT Pin 4  - PD2 with interrupt INT0
-            #define OWpin_PD3  // OW_PORT Pin 5  - PD3 with interrupt INT1
+	    #ifndef OWpin_PD2
+	    #ifndef OWpin_PD3
+		// in not defined then set defalt OWpin:
+            	//#define OWpin_PD2  // OW_PORT Pin 4  - PD2 with interrupt INT0
+            	#define OWpin_PD3  // OW_PORT Pin 5  - PD3 with interrupt INT1
+	    #endif
+	    #endif
   #ifdef OWpin_PD2
     //Pin setting 
     #define OW_PORT PORTD //1 Wire Port
@@ -359,12 +389,25 @@
 
   //Timer setting and interrupt
   // on select:
-            //#define Timer0_TOV0  // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
-            //#define Timer1_TOV1  // select timer1 with overflow interrupt (colision with PWM output on D9 and D10 ) (tested OK)
-            //#define Timer1_OCR1A // select timer1 with comparator OCR1A interrupt (colision with PWM output on D9 and D10 ) (tested OK)
-            //#define Timer1_OCR1B // select timer1 with comparator OCR1B interrupt (colision with PWM output on D9 and D10 ) (tested OK)
-            //#define Timer2_TOV2  // select timer2 with overflow interrupt (colison with arduino PWM output on D11 ) (tested OK)
-            #define Timer2_OCR2 // select interrupt by timer2 who has only one comparator OCR2. (colison with arduino PWM output on D11 ) (tested OK) <-- best choice
+	    #ifndef Timer0_TOV0
+	    #ifndef Timer1_TOV1
+	    #ifndef Timer1_OCR1A
+	    #ifndef Timer1_OCR1B
+	    #ifndef Timer2_TOV2
+	    #ifndef Timer2_OCR2
+		// in not defined then set defalt Timmer:
+            	//#define Timer0_TOV0  // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() )
+            	//#define Timer1_TOV1  // select timer1 with overflow interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            	//#define Timer1_OCR1A // select timer1 with comparator OCR1A interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            	//#define Timer1_OCR1B // select timer1 with comparator OCR1B interrupt (colision with PWM output on D9 and D10 ) (tested OK)
+            	//#define Timer2_TOV2  // select timer2 with overflow interrupt (colison with arduino PWM output on D11 ) (tested OK)
+            	#define Timer2_OCR2 // select interrupt by timer2 who has only one comparator OCR2. (colison with arduino PWM output on D11 ) (tested OK) <-- best choice
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
   #ifdef Timer0_TOV0
     #define CONF_TIMER TCCR0=(1<<CS00)|(1<<CS01); /*8mhz /64 couse 8 bit Timer interrupt every 8us*/
     #define EN_TIMER {TIMSK |= (1<<TOIE0); TIFR|=(1<<TOV0);} //enable timer interrupt
@@ -474,8 +517,13 @@
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
   // on select:
-            //#define OWpin_PD2  // OW_PORT Pin 4  - PD2 with interrupt INT0
-            #define OWpin_PD3  // OW_PORT Pin 5  - PD2 with interrupt INT1 <-- best choice with use Timer2 and comparator OCR2A (INT and timer share same pin)
+	    #ifndef OWpin_PD2
+	    #ifndef OWpin_PD3
+		// in not defined then set defalt OWpin:
+            	//#define OWpin_PD2  // OW_PORT Pin 4  - PD2 with interrupt INT0
+            	#define OWpin_PD3  // OW_PORT Pin 5  - PD2 with interrupt INT1 <-- best choice with use Timer2 and comparator OCR2A (INT and timer share same pin)
+	    #endif
+	    #endif
   #ifdef OWpin_PD2
     //Pin setting 
     #define OW_PORT PORTD //1 Wire Port
@@ -512,13 +560,28 @@
 
   //Timer setting and interrupt
   // on select:
-            //#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() ) !!!Compile problem inside arduino DO NOT USE (INT is used for time function, allready)
-            //#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D6 PWM)
-            //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D5 PWM)
-            //#define Timer1_OCR1A // select timer1 with comparator A interrupt (colision with D9 PWM)
-            //#define Timer1_OCR1B // select timer1 with comparator B interrupt (colision with D10 PWM) note: it is not appropriate to use this 16bit timmer for this purpose
-            //#define Timer2_OCR2A // select timer2 with comparator A interrupt (colision with D11 PWM) note: it is not appropriate to use this 16bit timmer for this purpose
-            #define Timer2_OCR2B // select timer2 with comparator B interrupt (colision with D3 PWM) <-- best choice because when is uset D3 with INT1 for One-Wire pin, then it cannot be used for PWM anyway.
+	    #ifndef Timer0_TOV0
+	    #ifndef Timer0_OCR0A
+	    #ifndef Timer0_OCR0B
+	    #ifndef Timer1_OCR1A
+	    #ifndef Timer1_OCR1B
+	    #ifndef Timer2_OCR2A
+	    #ifndef Timer2_OCR2B
+		// in not defined then set defalt Timmer:
+		//#define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() ) !!!Compile problem inside arduino DO NOT USE (INT is used for time function, allready)
+            	//#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D6 PWM)
+            	//#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D5 PWM)
+            	//#define Timer1_OCR1A // select timer1 with comparator A interrupt (colision with D9 PWM)
+            	//#define Timer1_OCR1B // select timer1 with comparator B interrupt (colision with D10 PWM) note: it is not appropriate to use this 16bit timmer for this purpose
+            	//#define Timer2_OCR2A // select timer2 with comparator A interrupt (colision with D11 PWM) note: it is not appropriate to use this 16bit timmer for this purpose
+            	#define Timer2_OCR2B // select timer2 with comparator B interrupt (colision with D3 PWM) <-- best choice because when is uset D3 with INT1 for One-Wire pin, then it cannot be used for PWM anyway.
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
   #ifdef Timer0_TOV0
     #define CONF_TIMER    {TCCR0A=0 ; TCCR0B=(1<<CS00)|(1<<CS01);} // 8mhz /64 couse 8 bit Timer interrupt every 8us*/ 
     #define EN_TIMER      {TIMSK0 |= (1<<TOIE0); TIFR0|=(1<<TOV0);} //enable timer interrupt
@@ -607,11 +670,22 @@
   #define OW_ADD_TO_GLOBAL // nothing for this MCU
   //OW Pin  
   // on select:
-            //#define OWpin_PD0  // OW_PORT Pin 18  - PD0 with interrupt INT0
-            //#define OWpin_PD1  // OW_PORT Pin 19  - PD1 with interrupt INT1
-            //#define OWpin_PD2  // OW_PORT Pin 20  - PD2 with interrupt INT2
-            //#define OWpin_PD3  // OW_PORT Pin 21  - PD3 with interrupt INT3
-            #define OWpin_PE6  // OW_PORT Pin 1  - PE6 with interrupt INT6 <-- best choice with use Timer2 and comparator OCR2A (INT and timer share same pin)
+	    #ifndef OWpin_PD0
+	    #ifndef OWpin_PD1
+	    #ifndef OWpin_PD2
+	    #ifndef OWpin_PD3
+	    #ifndef OWpin_PE6
+		// in not defined then set defalt OWpin:
+            	//#define OWpin_PD0  // OW_PORT Pin 18  - PD0 with interrupt INT0
+            	//#define OWpin_PD1  // OW_PORT Pin 19  - PD1 with interrupt INT1
+            	//#define OWpin_PD2  // OW_PORT Pin 20  - PD2 with interrupt INT2
+            	//#define OWpin_PD3  // OW_PORT Pin 21  - PD3 with interrupt INT3
+            	#define OWpin_PE6  // OW_PORT Pin 1  - PE6 with interrupt INT6 <-- best choice with use Timer2 and comparator OCR2A (INT and timer share same pin)
+	    #endif
+	    #endif
+	    #endif
+	    #endif
+	    #endif
   #ifdef OWpin_PD0 // INT0
     //Pin setting 
     #define OW_PORT PORTD //1 Wire Port
@@ -689,9 +763,16 @@
   #define READ_PIN  ((OW_PIN & OW_PIN_MASK) == OW_PIN_MASK) // read from pin and return 0 or 1
   //Timer setting and interrupt
   // on select:
-            // #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() ) DO NOT USE!!!
-            #define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D6 PWM) <-- best choice
-            //#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D5 PWM)
+	    #ifndef Timer0_TOV0
+	    #ifndef Timer0_OCR0A
+	    #ifndef Timer0_OCR0B
+		// in not defined then set defalt Timmer:
+            	// #define Timer0_TOV0 // select timer0 with overflow interrupt (colision with arduino time functions dealy(), millis() ) DO NOT USE!!!
+            	#define Timer0_OCR0A // select timer0 with comparator A interrupt (colision with D6 PWM) <-- best choice
+            	//#define Timer0_OCR0B // select timer0 with comparator B interrupt (colision with D5 PWM)
+	    #endif
+	    #endif
+	    #endif
   #ifdef Timer0_TOV0
     #define CONF_TIMER    {TCCR0A=0 ; TCCR0B=(1<<CS00)|(1<<CS01);} // 8mhz /64 couse 8 bit Timer interrupt every 8us*/ 
     #define EN_TIMER      {TIMSK0 |= (1<<TOIE0); TIFR0|=(1<<TOV0);} //enable timer interrupt

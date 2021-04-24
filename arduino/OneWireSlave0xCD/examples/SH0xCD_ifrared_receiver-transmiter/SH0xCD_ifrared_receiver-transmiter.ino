@@ -30,9 +30,8 @@
       section1 :  number of retransmissions
       section2 :  transmition mode 0=38KHz 1=36KHz
       section3 :  led indication IR activity 1=enable 0-disable
-      section4 :  control green led 0=off, 1=on
-      section5 :  led idetification of 1-Wire device 1=on 0-off
-      section6 :  for development always 0. Write to 1 to acutal_value start save all  values from all sections. (for me after restart, device load default values from another project and switch on beeper)
+      section4 :  led idetification of 1-Wire device 1=on 0-off
+      section5 :  for development always 0. Write to 1 to acutal_value start save all  values from all sections. (for me after restart, device load default values from another project and switch on beeper)
 
    Features:
     - reivre IR from most types remote controls
@@ -43,10 +42,25 @@
     - enable led idetification of 1-Wire device
     - enable save actual setting value into EEPROM
     
-   Example is for AVR_ATtiny can be also used on arduino leonardo or micro and nano (default One Wire pin for other platform refer to suportedMCU.h).
+   Example is for AVR_ATtiny85 can be also used on arduino leonardo or micro and nano (default One Wire pin for other platform refer to suportedMCU.h).
    Hardware platform and some options must be set into header (SH0xCD_platform.h) file.
    
-
+   arduino-AVR_ATtiny85/84:
+   ------------------------
+   arduino not have native support for AVR_ATtiny85. This supoort have to add :
+   the procedure applies for arduino IDE 1.6.4 and hight
+   In menu File/Preferences. In the dialg you fill item Additional Board Manager with: https://raw.githubusercontent.com/damellis/attiny/ide-1.6.x-boards-manager/package_damellis_attiny_index.json a stiskněte OK. Toto jádro je sice uváděny jako první, ale nedoporučuji ho používat. Bylo první z historických důvodů, ale jeho autor nemá na jeho vývoj tolik času, jako je jádro, zmíněné v odstavci o alternativních jádrech.
+   And then use function Tools/Board/Boards Manager. In the list find attiny and install it.
+   Beafore complile select:
+    Board: ATtiny25/45/85
+    Procesor: ATtiny85
+    Clock: Internal16MHz
+    Select Programmer: (I use secundary arduino as ISP "Arduino as ISP"
+    Burn Bootloader (this is necessary for set correct MCU clock)
+    Burn by Sketch/Upload Using Programmer
+   
+   More usefull information about ATtiny and arduino:
+    https://www.arduinoslovakia.eu/page/attiny85
 
                                                                                                 / \ +5V
                                                                                                  |
@@ -72,24 +86,29 @@
 */
 
 //  generate Device ID based on compile date and time
-#define __DEBUG__
+//#define __DEBUG__
 
-#include "SH0xCD_platform.h"
-
+// define constants
 #define CONT_OF_SECTIONS 6 // number of section (sensors or actors)
-#define PIN_OUT 3
-#define PIN_IN 6
-#define PIN_COUNT 5
-#define PIN_RECV 7
-#define PIN_IR_LED 9
-#define PIN_LED 13
 #define LEN_IR_BUF 32
+#define TOLERAN 2
+#define MAX_SLEEP 25000
 
-
-
+// platform settings
+#ifdef __AVR_ATtiny85__
+  #define PIN_RECV 0
+  #define PIN_IR_LED 1
+  #define PIN_LED 3
+  #define Timer0_OCR0A // force own (no default) MCU settings
+#endif
+#ifdef __AVR_ATmega328P__
+  #define PIN_RECV 7
+  #define PIN_IR_LED 9
+  #define PIN_LED 13
+#endif
+#include "OneWireSlave0xCD.cpp.h"
 
 OneWireSlave0xCD ow; //define One Wire object
-
 
 // factory description is good to store in PROGMEM to save RAM
 const char device_description[] PROGMEM = "SEAHU Infrared receiver/transmiter v1 C2021 by Ing. Ondrej Lycka";
@@ -100,19 +119,30 @@ const char info_led[] PROGMEM           = "SWITCH info led 1=enable 0-disable";
 const char led[] PROGMEM                = "SWITCH identification 1=on 0-off";
 const char Save[] PROGMEM               = "Switch button 1=save_actual_values_all_sections"; // mainly for devolepment
 
-
-const char counter_off[] PROGMEM    = "Counter poweroff";
-
-char ir_buf[32];
+char ir_buf[LEN_IR_BUF];
 bool hex_code_lock=false;
-
 bool last_conter_status=HIGH;
 bool tx=false; // transmitter status
+byte time_start0;
+byte time_start1;
+byte time_data0;
+byte time_data1;
+byte len;
+byte data[20];
+byte recv_last=1;
+byte mask=0x01;
+byte stage=0; // position of decode code 
+              // 0 - wait to new start signal
+              // 1 - save lengh of first start signal
+              // 2 - save lengh of secound start signal
+              // 3 - save lengh of frist datat signal (saved as zero)
+              // 4 - save leng of secound diferent leng of signal (saved as one)
+unsigned long last_time=micros();
+unsigned long new_time=micros();
+
 
 //declaration measured functions 
-void mPio_in(bool force_now);
-void mPio_out(bool force_now);
-void mCounter(bool force_now);
+// not use here
 
 /* 
  * define sections array (this array must be definet as global varialbe (because must be aviable throucht interruot). 
@@ -158,8 +188,11 @@ typedef enum { IR_BUF, TX_REPEATE, TX_MODE, INFO_LED, LED, SAVE }; // enumerate 
 //}
 //-------------- END TO SERVE POWEROFF ------------------------------------
 
+// ------------- AUXLIARY INFRARED FUNCTIONS -------------------------------
 
-//-------------- SET ON HARDWARE 38KHz/36KHz for pin with transmitter infrared diode ----
+/* 
+ * Set on hardware 38KHz/36KHz for pin with transmitter infrared diode
+ */
 void on_3XKHz() {
   #ifdef __AVR_ATtiny85__
     //Attiny85 , running @ 16MHZ
@@ -174,11 +207,11 @@ void on_3XKHz() {
     TCCR1 |= (1 << CS11); //prescaler 2 table 12-5
     if  (sections[TX_MODE].actualValue.b==0){ // is set 38KHz mode
       OCR1C = 105; // (16 000 000 / (2*105) = 72072 *2 = 38 095 Hz (for 36KHz use value 111)
-      OCR1A = 105;
+      OCR1A = 104;
     }
     else {  // is set 36KHz mode
       OCR1C = 111;
-      OCR1A = 111;
+      OCR1A = 110;
     }
   #endif
   #ifdef __AVR_ATmega328P__
@@ -203,6 +236,9 @@ void on_3XKHz() {
   tx=true;
 }
 
+/* 
+ * Set off hardware 38KHz/36KHz
+ */
 void off_3XKHz() {
   #ifdef __AVR_ATtiny85__
     TCCR1 &= ~( (1 << COM1A1) | (1 << COM1A0) ); //diconected OC1A from pin PB1 table 12-4
@@ -217,57 +253,47 @@ void off_3XKHz() {
   tx=false;
 }
 
-
-// setup
-void setup() {
-  // setup pins
-  pinMode(PIN_RECV, INPUT);
-  pinMode(PIN_LED, OUTPUT);
-   
-  // setup One Wire
-  ow.ini(CONT_OF_SECTIONS, sections, device_description); // intialization of one wire interface for run bacground throught interrupt and load saved seting from EEPROM or on frist run set defaut values
-
-  //setup analog comare for detect poweroff 
-  //CONF_AC // (defined in suportedMCU.h)
-  #ifdef __DEBUG__
-    Serial.begin(115200);
+/*
+ * print binary data - only for debug
+ */
+void print_bin_data(){
+  #ifdef __DEBUG__      
+    byte mask;
+    byte i;
+    while ( i < len) { // i*8 because every byte has 8 bits (len is in bits)
+      mask=0x01;
+      while (mask!=0 && i < len){
+        
+          if ( (data[i/8] & mask) == 0 ) Serial.print("0");
+          else                         Serial.print("1");
+        
+      }
+    }
   #endif
-  //on_3XKHz();
 }
 
-byte time_start0;
-byte time_start1;
-byte time_data0;
-byte time_data1;
-
-
-byte len;
-byte data[20];
-byte recv_last=1;
-byte mask=0x01;
-byte stage=0; // position of decode code 
-              // 0 - wait to new start signal
-              // 1 - save lengh of first start signal
-              // 2 - save lengh of secound start signal
-              // 3 - save lengh of frist datat signal (saved as zero)
-              // 4 - save leng of secound diferent leng of signal (saved as one)
-#define TOLERAN 2
-#define MAX_SLEEP 25000
-              
-unsigned long last_time=micros();
-unsigned long new_time=micros();
+/*
+ * Convert number value to char representtive this value in hex format
+ */
 
 byte val_to_hex(byte val){
   if( val < 10) return val + 48;
   else          return val + 55;
 }
 
+/*
+ * Convert binary byte to two chars representtive byte in hex format
+ * return buf pointer to next chars
+ */
 char *byte_to_hex(byte val, char*buf){
   buf[0]=val_to_hex(val >> 4);
   buf[1]=val_to_hex(val & 0x0F);
   return buf+2;
 }
 
+/*
+ * Binary data to hex prepresenatation
+ */
 void data_to_hex(char *buf){
   byte i=0;
   memset(buf, 0, LEN_IR_BUF);
@@ -281,11 +307,17 @@ void data_to_hex(char *buf){
   }
 }
 
+/*
+ * Convert char in hex format to binary value
+ */
 byte hex_to_val(byte hex){
   if ( hex >= 65 ) return (hex-55);
   else             return  (hex-48);
 }
 
+/*
+ * Convert two chars representtive value in hex format to byte value and return it
+ */
 byte char_to_byte(char * buf){
   byte val;
   val = hex_to_val(buf[0]) << 4;
@@ -293,6 +325,9 @@ byte char_to_byte(char * buf){
   return val;
 }
 
+/*
+ * Convert string in hex format to binary data
+ */
 void hex_to_data(char *buf){
   byte i=0;
   time_start0=char_to_byte(buf);
@@ -301,19 +336,23 @@ void hex_to_data(char *buf){
   time_data1=char_to_byte(buf+6);
   len       =char_to_byte(buf+8);
   buf=buf+10;
-  //data[0]=char_to_byte(buf);
-  //data[1]=char_to_byte(buf+2);
   while ( (i*8) < len) { // i*8 because every byte has 8 bits (len is in bits)
     data[i]=char_to_byte(buf +i*2 );
     i++;
   }
 }
 
+/*
+ * Change transmite status
+ */
 void change_tx(){
   if(tx==true) off_3XKHz();
   else on_3XKHz();
 }
 
+/*
+ * Transmite binary data
+ */
 void transmit_bin_data(){
   byte tmp;
   byte mask;
@@ -326,10 +365,10 @@ void transmit_bin_data(){
   stage=6;
   for (n=0; n < sections[TX_REPEATE].actualValue.u32; n++){ // repeate sending
     on_3XKHz(); // start transmiter status
-    //delayMicroseconds(time_start0*10);
+    //delayMicroseconds(time_start0*40);
     delayMicroseconds(st0);
     change_tx();
-    //delayMicroseconds(time_start1*10);
+    //delayMicroseconds(time_start1*40);
     delayMicroseconds(st1);
     change_tx();
     byte i=0;
@@ -351,37 +390,10 @@ void transmit_bin_data(){
   stage=0;
 }
 
-void print_bin_data(){
-  #ifdef __DEBUG__      
-    byte mask;
-    byte i;
-    while ( i < len) { // i*8 because every byte has 8 bits (len is in bits)
-      mask=0x01;
-      while (mask!=0 && i < len){
-        
-          if ( (data[i/8] & mask) == 0 ) Serial.print("0");
-          else                         Serial.print("1");
-        
-      }
-    }
-  #endif
-}
 
-
-void save_as(bool val){
-  byte i;
-  i=len/8;
-  if (val==0) data[i]= data[i] & ~mask; // save zero
-  else        data[i]= data[i] | mask;  // save one
-  mask=mask<<1;
-  if (mask==0) {
-    i++;
-    mask=0x01;
-  }
-  len++;
-}
-
-// write binary data to 1-Wire buf into hex buf
+/*
+ * Write binary data to 1-Wire buf into hex buf
+ */
 void write_data_to_ir_buf(){
   memset(ir_buf, 0, LEN_IR_BUF);
   //hex_to_data(ir_buf);
@@ -398,6 +410,25 @@ void write_data_to_ir_buf(){
   hex_code_lock=true;
 }
 
+/*
+ * Save leng of data singnal into binary data array as 0 or 1 by leng of signal
+ */
+void save_as(bool val){
+  byte i;
+  i=len/8;
+  if (val==0) data[i]= data[i] & ~mask; // save zero
+  else        data[i]= data[i] | mask;  // save one
+  mask=mask<<1;
+  if (mask==0) {
+    i++;
+    mask=0x01;
+  }
+  len++;
+}
+
+/*
+ * Recaivre IR signal
+ */
 void receiv() {
   byte recv_now;
   unsigned long delta_time;
@@ -419,11 +450,8 @@ void receiv() {
       if (stage!=0) stage=0;
       if (recv_now==recv_last) return;
    }
-   
    if (recv_now!=recv_last) {
-
     switch (stage){
-        
       case 0: // try detec new sekvence
         if (recv_now==0 && delta_time>1200) stage=1; // only if is pulldown signal and last logic level one was min duration beatwin two signals, prevent strat detection in midle of another signal
         break;
@@ -494,13 +522,12 @@ void receiv() {
     }
     recv_last=recv_now;
     last_time=new_time;
-
   }
-    
-      
-   
 }
 
+/*
+ * Check change number of transmition repeate
+ */
 void check_tx_repeate(){
   union value0xCD value; // space to temporary store new value
 
@@ -511,14 +538,26 @@ void check_tx_repeate(){
 
 }
   
+/*
+ * Check status change of indication led
+ */
 void check_outputs(){
   // check identification led
    if (stage==0) {
-    if  (sections[LED].actualValue.b==1)  digitalWrite(PIN_LED, LOW);
-    else digitalWrite(PIN_LED, HIGH);
+    if  (sections[LED].actualValue.b==1)  {
+      digitalWrite(PIN_LED, LOW);
+      //on_3XKHz();
+    }
+    else {
+      digitalWrite(PIN_LED, HIGH);
+      //off_3XKHz();
+    }
    }  
 }
 
+/*
+ * Check save event
+ */
 void check_save_velues(){
   union value0xCD value; // space to temporary store new value
 
@@ -532,6 +571,23 @@ void check_save_velues(){
   }
 }
 
+
+// setup
+void setup() {
+  // setup pins
+  pinMode(PIN_RECV, INPUT);
+  pinMode(PIN_LED, OUTPUT);
+   
+  // setup One Wire
+  ow.ini(CONT_OF_SECTIONS, sections, device_description); // intialization of one wire interface for run bacground throught interrupt and load saved seting from EEPROM or on frist run set defaut values
+
+  //setup analog comare for detect poweroff 
+  //CONF_AC // (defined in suportedMCU.h)
+  #ifdef __DEBUG__
+    Serial.begin(115200);
+  #endif
+}
+
 // main loop 
 void loop() {
    // serve measrment functions
@@ -540,6 +596,7 @@ void loop() {
                                 // of interrupt service, bat return whithou measurment.
    // .
    // ..
+
    
    if (ir_buf[0]==0) { // bufer je vynulovan to umozni dalsi vysilani nebo prijem
     hex_code_lock=false; // odemkni buffer pro moznost prijmu

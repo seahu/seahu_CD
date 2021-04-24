@@ -78,7 +78,7 @@
 */
 
 /*
- * !!!! BEFORE COMPILE chek suportedMCU.h !!!!
+ * !!!! BEFORE COMPILE chek suportedMCU.h - this is no longer necessary now you can define timer in this file!!!!
  * !-----------------------------------------!
  * 1-wire librrary must use another intterupt then servo rutine that use timer1.
  * Please check into inside librrary 'OneWireSlave0xCD' in file suportedMCU.h must be select for corect MCU timer2
@@ -93,7 +93,8 @@
  *           //#define Timer2_OCR2A // select timer2 with comparator A interrupt (colision with D11 PWM) note: it is not appropriate to use this 16bit timmer for this purpose
  *           #define Timer2_OCR2B // select timer2 with comparator B interrupt (colision with D3 PWM) <-- best choice because when is uset D3 with INT1 for One-Wire pin, then it cannot be used for PWM anyway.
  */
-#include "OneWireSlave0xCD.h"
+#define Timer2_OCR2B // force own (no default) MCU settings
+#include "OneWireSlave0xCD.cpp.h"
 
 #define CONT_OF_SECTIONS 7 // number of section (sensors or actors)
 #define PIN_SERVO1 9
