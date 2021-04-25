@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# download header files
+#----------------------
+apt-get update
+apt-get install linux-headers-$(uname -r)
+
+# Install the required compilers and other tools
+#-----------------------------------------------
+# in Ubuntu and Debian
+sudo apt-get install build-essential libncurses-dev bison flex libssl-dev libelf-dev
+
+# in CentOS/RHEL/Oracle/Scientific Linux
+#sudo yum group install "Development Tools"
+#sudo yum install ncurses-devel bison flex elfutils-libelf-devel openssl-devel
+
+# in Fedora
+#sudo dnf group install "Development Tools"
+#sudo dnf install ncurses-devel bison flex elfutils-libelf-devel openssl-devel
+
+#compile modul
+#-------------
+cd w1_seahu_cd
+make
+
+#copy to palce with other modules
+#--------------------------------
+#first create new direstory
+mkdir -p /lib/modules/$(uname -r)/kernel/drivers/w1/slaves
+#after copy
+cp w1_seahu_cd.ko /lib/modules/$(uname -r)/kernel/drivers/w1/slaves/
+
+#add into list modules automaticaly loaded after start system
+echo "w1_seahu_cd.ko" >> /etc/modules
