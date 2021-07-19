@@ -506,9 +506,9 @@
    *    Timer0 | TOV0 (timer overflow) | arduino dely(), millis() functions  and #D0 PWM !!!Compile problem inside arduino !! DO NOT USE !!(INT used for time function, already)
    *    Timer0 | OCR0A                 | #D6 PWM
    *    Timer0 | OCR0B                 | #D5 PWM
-   *    Timer1 | OCR0A                 | #D9 PWM
-   *    Timer1 | OCR0B                 | #D10 PWM note: it is not appropriate to use this 16bit timmer for this purpose
-   *    Timer2 | OCR2A                 | #D11 PWM note: it is not appropriate to use this 16bit timmer for this purpose
+   *    Timer1 | OCR1A                 | #D9 PWM note: it is not appropriate to use this 16bit timmer for this purpose
+   *    Timer1 | OCR1B                 | #D10 PWM note: it is not appropriate to use this 16bit timmer for this purpose
+   *    Timer2 | OCR2A                 | #D11 PWM 
    *    Timer2 | OCR2B                 | #D3 PWM <-- best choice because when is uset D3 with INT1 for One-Wire pin, then it cannot be used for PWM anyway.
    *    
    * 

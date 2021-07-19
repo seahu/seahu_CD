@@ -402,8 +402,8 @@ void OneWireSlave0xCD::write_new_value(uint8_t section, union value0xCD mewValue
   union value0xCD maxValue;
   uint8_t control=(p_sections_+section)->control;
   bool alarm=false;
-  EEcmp(minValue.u8t, section*EE_SIZE_OF_SECTION+EE_MIN_ALARM_VALUE,4); // get minValue from EEPROM
-  EEcmp(maxValue.u8t, section*EE_SIZE_OF_SECTION+EE_MAX_ALARM_VALUE,4); // get maxValue from EEPROM
+  EEcmp(minValue.u8t, EE_START_POINT+section*EE_SIZE_OF_SECTION+EE_MIN_ALARM_VALUE,4); // get minValue from EEPROM
+  EEcmp(maxValue.u8t, EE_START_POINT+section*EE_SIZE_OF_SECTION+EE_MAX_ALARM_VALUE,4); // get maxValue from EEPROM
   switch( control & 0b00011000 ) { // filtr from contol byte of section pnly value types bit 3-5
     case C_BOOL:   // 0b00001000
       if ( control & 0b01000000 ) alarm=alarm || ( mewValue.u32<=minValue.u32 );  // <
