@@ -88,6 +88,10 @@ uint8_t OneWireMaster0xCD::get_status_byte(){
       return 0;
   }
 }
+uint8_t OneWireMaster0xCD::get_status_byte(uint8_t section){
+  setSection(section);
+  return get_status_byte();
+}
 
 /*
  * PRINT STATUS BYTE
@@ -125,14 +129,18 @@ bool OneWireMaster0xCD::is_ready(){
 void OneWireMaster0xCD::start_measure(){
   if (  write_uni(0x44, &section, NULL, 0, 0) ){
         #ifdef OneWireMaster0xCDDebug
-	Serial.println("Send new measure requirest.");
+  Serial.println("Send new measure requirest.");
         #endif
   }
   else {
         #ifdef OneWireMaster0xCDDebug
-	Serial.println("Can't send measure requirest.");
+  Serial.println("Can't send measure requirest.");
         #endif
   }
+}
+void OneWireMaster0xCD::start_measure(uint8_t section){
+  setSection(section);
+  start_measure();
 }
 
 /*
@@ -142,12 +150,12 @@ void OneWireMaster0xCD::start_measure_all(){
   const uint8_t sections=0xFF;
   if (  write_uni(0x44, &sections, NULL, 0, 0) ){
         #ifdef OneWireMaster0xCDDebug
-	Serial.println("Send new measure requirest for all sections.");
+  Serial.println("Send new measure requirest for all sections.");
         #endif
   }
   else {
         #ifdef OneWireMaster0xCDDebug
-	Serial.println("Can't send measure requirest for all sections.");
+  Serial.println("Can't send measure requirest for all sections.");
         #endif
   }
 }
@@ -169,6 +177,10 @@ bool OneWireMaster0xCD::get_measured_value(val *value){
   #endif
   return false;
 }
+bool OneWireMaster0xCD::get_measured_value(val *value, uint8_t section){
+  setSection(section);
+  return get_measured_value(value);
+}
 
 /*
  * get ACTUAL_VALUE from actual section
@@ -180,6 +192,8 @@ bool OneWireMaster0xCD::get_actual_value(val *value, uint8_t section){
   setSection(section);
   return get_value(value, 0xF5);
 }
+
+
 /*
  * set ACTUAL_VALUE from actual section
  */
@@ -191,42 +205,33 @@ bool OneWireMaster0xCD::set_actual_value(val *value, uint8_t section){
   return set_value(value,0x55, 0);
 }
 bool OneWireMaster0xCD::set_actual_value(uint32_t value, uint8_t section){
-  val newvalue;
-  newvalue.u32bit=value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.u32bit=(uint32_t)value;
+  return set_actual_value(&newvalue,section);
 }
 bool OneWireMaster0xCD::set_actual_value(int32_t value, uint8_t section){
-  val newvalue;
-  newvalue.s32bit=value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.s32bit=(int32_t)value;
+  return set_actual_value(&newvalue,section);
 }
 bool OneWireMaster0xCD::set_actual_value(uint16_t value, uint8_t section){
-  val newvalue;
-  newvalue.u32bit=(uint32_t)value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.u32bit=(uint32_t)value;
+  return set_actual_value(&newvalue,section);
 }
 bool OneWireMaster0xCD::set_actual_value(int16_t value, uint8_t section){
-  val newvalue;
-  newvalue.s32bit=(int32_t)value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.s32bit=(int32_t)value;
+  return set_actual_value(&newvalue,section);
 }
 bool OneWireMaster0xCD::set_actual_value(uint8_t value, uint8_t section){
-  val newvalue;
-  newvalue.u32bit=(uint32_t)value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.u32bit=(uint32_t)value;
+  return set_actual_value(&newvalue,section);
 }
 bool OneWireMaster0xCD::set_actual_value(int8_t value, uint8_t section){
-  val newvalue;
-  newvalue.s32bit=(int32_t)value;
-  setSection(section);
-  return set_value(&newvalue,0x55, 0);
+  val newvalue; newvalue.s32bit=(int32_t)value;
+  return set_actual_value(&newvalue,section);
 }
-
+bool OneWireMaster0xCD::set_actual_value(bool value, uint8_t section){
+  val newvalue; newvalue.s32bit=(int32_t)value;
+  return set_actual_value(&newvalue,section);
+}
 
 /*
  * print value by type defined into control register for debug purpouse
@@ -250,24 +255,50 @@ void OneWireMaster0xCD::print_value(val *value, char head[]){
 }
 
 /*
- * get/set MIN_ALARM_VALUE from actual section
+ * get MIN_ALARM_VALUE from actual section
  */
 bool OneWireMaster0xCD::get_min_alarm_value(val *value){
   return get_value(value, 0xFA);
 }
-bool OneWireMaster0xCD::set_min_alarm_value(val *value){
-  return set_value(value,0x5A,15);
+bool OneWireMaster0xCD::get_min_alarm_value(val *value, uint8_t section){
+  setSection(section);
+  return get_value(value, 0xFA);
 }
 
 /*
- * get/set MAX_ALARM_VALUE from actual section
+ * set MIN_ALARM_VALUE from actual section
+ */
+bool OneWireMaster0xCD::set_min_alarm_value(val *value){
+  return set_value(value,0x5A,15);
+}
+bool OneWireMaster0xCD::set_min_alarm_value(val *value, uint8_t section){
+  setSection(section);
+  return set_value(value,0x5A,15);
+}
+
+
+/*
+ * get MAX_ALARM_VALUE from actual section
  */
 bool OneWireMaster0xCD::get_max_alarm_value(val *value){
   return get_value(value, 0xFB);
 }
+bool OneWireMaster0xCD::get_max_alarm_value(val *value, uint8_t section){
+  setSection(section);
+  return get_value(value, 0xFB);
+}
+
+/*
+ * set MAX_ALARM_VALUE from actual section
+ */
 bool OneWireMaster0xCD::set_max_alarm_value(val *value){
   return set_value(value,0x5B,15);
 }
+bool OneWireMaster0xCD::set_max_alarm_value(val *value, uint8_t section){
+  setSection(section);
+  return set_value(value,0x5B,15);
+}
+
 
 /*
  * get/set secttion user note (!len of buf must be min 32 !)
@@ -286,8 +317,8 @@ bool OneWireMaster0xCD::get_note(char buf[], uint8_t section){
 
 bool OneWireMaster0xCD::set_note(char buf[]){
   if (write_uni(0x58, &section, buf, 32, 1000)==false) {
-	Serial.println("zapis se nepovedl");
-	return false;
+  Serial.println("zapis se nepovedl");
+  return false;
   }
   return true;
 }
@@ -430,7 +461,7 @@ bool OneWireMaster0xCD::get_value(val *value, uint8_t cmd){
   if (read_uni(cmd, &section , buf, 4, 0)==false) return false;
   memcpy(value,buf,4);
   #ifdef OneWireMaster0xCDDebug
-  	print_value(value, "Get value: ");
+    print_value(value, "Get value: ");
   #endif
   return true;
 }
@@ -442,3 +473,4 @@ bool OneWireMaster0xCD::set_value(val *value, uint8_t cmd, uint8_t Delay){
   #endif
   return true;
 }
+
