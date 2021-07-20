@@ -66,6 +66,7 @@ public:
      * return 0 means error
      */
     uint8_t get_status_byte();
+    uint8_t get_status_byte(uint8_t section);
 
     /*
      * PRINT STATUS BYTE
@@ -81,6 +82,7 @@ public:
      * MEASURE REQUIREST ACTUAL SECTION
      */
     void start_measure();
+    void start_measure(uint8_t section);
 
     /*
      * MEASURE REQUIREST ALL SECTIONS
@@ -92,12 +94,20 @@ public:
      * GET NEW MEASURED VALUE
      */
     bool get_measured_value(val *value);
+    bool get_measured_value(val *value, uint8_t section);
 
     /*
      * get/set ACTUAL_VALUE from actual section
      */
     bool get_actual_value(val *value);
-    bool get_actual_value(val *value,uint8_t section);
+    bool get_actual_value(val *value, uint8_t section);
+    bool get_actual_value(uint32_t *value, uint8_t section);
+    bool get_actual_value(int32_t *value, uint8_t section);
+    bool get_actual_value(uint16_t *value, uint8_t section);
+    bool get_actual_value(int16_t *value, uint8_t section);
+    bool get_actual_value(uint8_t *value, uint8_t section);
+    bool get_actual_value(int8_t *value, uint8_t section);
+    
     bool set_actual_value(val *value);
     bool set_actual_value(val *value, uint8_t section);
     bool set_actual_value(uint32_t value, uint8_t section);
@@ -117,13 +127,45 @@ public:
      * get/set MIN_ALARM_VALUE from actual section
      */
     bool get_min_alarm_value(val *value);
+    bool get_min_alarm_value(val *value, uint8_t section);
+    bool get_min_alarm_value(uint32_t *value, uint8_t section);
+    bool get_min_alarm_value(int32_t *value, uint8_t section);
+    bool get_min_alarm_value(uint16_t *value, uint8_t section);
+    bool get_min_alarm_value(int16_t *value, uint8_t section);
+    bool get_min_alarm_value(uint8_t *value, uint8_t section);
+    bool get_min_alarm_value(int8_t *value, uint8_t section);
+    
     bool set_min_alarm_value(val *value);
+    bool set_min_alarm_value(val *value, uint8_t section);
+    bool set_min_alarm_value(uint32_t *value, uint8_t section);
+    bool set_min_alarm_value(int32_t *value, uint8_t section);
+    bool set_min_alarm_value(uint16_t *value, uint8_t section);
+    bool set_min_alarm_value(int16_t *value, uint8_t section);
+    bool set_min_alarm_value(uint8_t *value, uint8_t section);
+    bool set_min_alarm_value(int8_t *value, uint8_t section);
+
     
     /*
      * get/set MAX_ALARM_VALUE from actual section
      */
     bool get_max_alarm_value(val *value);
+    bool get_max_alarm_value(val *value, uint8_t section);
+    bool get_max_alarm_value(uint32_t *value, uint8_t section);
+    bool get_max_alarm_value(int32_t *value, uint8_t section);
+    bool get_max_alarm_value(uint16_t *value, uint8_t section);
+    bool get_max_alarm_value(int16_t *value, uint8_t section);
+    bool get_max_alarm_value(uint8_t *value, uint8_t section);
+    bool get_max_alarm_value(int8_t *value, uint8_t section);
+
+    
     bool set_max_alarm_value(val *value);
+    bool set_max_alarm_value(val *value, uint8_t section);
+    bool set_max_alarm_value(uint32_t *value, uint8_t section);
+    bool set_max_alarm_value(int32_t *value, uint8_t section);
+    bool set_max_alarm_value(uint16_t *value, uint8_t section);
+    bool set_max_alarm_value(int16_t *value, uint8_t section);
+    bool set_max_alarm_value(uint8_t *value, uint8_t section);
+    bool set_max_alarm_value(int8_t *value, uint8_t section);
 
     /*
      * get/set secttion user note (!len of buf must be min 64 !)
