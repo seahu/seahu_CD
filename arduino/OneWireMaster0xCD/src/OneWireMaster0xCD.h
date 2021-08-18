@@ -69,6 +69,14 @@ public:
     uint8_t get_status_byte(uint8_t section);
 
     /*
+     * SET INTO STATUS BYTE
+     * if no comunication  store new value into global value - controlByte
+     * return true of false
+    */
+    uint8_t set_status_byte(uint8_t B);
+    uint8_t set_status_byte(uint8_t B, uint8_t section);
+
+    /*
      * PRINT STATUS BYTE
      */
     void print_status_byte();

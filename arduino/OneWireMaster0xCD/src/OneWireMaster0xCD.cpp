@@ -94,6 +94,23 @@ uint8_t OneWireMaster0xCD::get_status_byte(uint8_t section){
 }
 
 /*
+ * SET STATUS BYTE
+ * if no comunication  store new value into global value - controlByte
+ * return true of false
+ */
+uint8_t OneWireMaster0xCD::set_status_byte(uint8_t B){
+  if ( write_uni(0x53, &section, &B, 1, 0)==true ){
+     controlByte=B; //save new value only if no comuncation error
+     return true;
+  }
+  else return false;
+}
+uint8_t OneWireMaster0xCD::set_status_byte(uint8_t B, uint8_t section){
+  setSection(section);
+  return set_status_byte(B);
+}
+
+/*
  * PRINT STATUS BYTE
  */
 void OneWireMaster0xCD::print_status_byte(){
