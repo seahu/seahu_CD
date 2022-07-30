@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# stahnout hlviskove soubory
+# stahnout hlaviskove soubory (download header files)
 apt-get update
 apt-get install linux-headers-$(uname -r)
 
-# zjisteni cislne rady jadra
+# zjisteni cislne rady jadra (get base number of linux kernel)
 name=$(uname -r)
 ver=${name:0:3}
 lin="linux-$ver"
 echo $lin
 
-# presun do adresre se stejnym jadrem jako ma prave bezici linux
+# presun do adresre se stejnym jadrem jako ma prave bezici linux (goto to corect directory by version linux kernel)
 cd ./$lin
 pwd
 
-# v dotycnem adresari pak spustiti doit
+# v dotycnem adresari pak spustiti doit (do it in corect linux vesion kernel)
 ./doit
 
