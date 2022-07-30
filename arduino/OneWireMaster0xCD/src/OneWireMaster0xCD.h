@@ -22,6 +22,21 @@
 #include "Arduino.h"
 #include <OneWire.h>
 
+// CONTROLL BYTE FLAGS ---------------------
+#define C_READ            0b00000001
+#define C_WRITE           0b00000010
+#define C_ALARM           0b00000100
+#define C_TYPE_MASK       0b00011000
+#define C_MEMORY          0b00000000
+#define C_BOOL            0b00001000
+#define C_U32BIT          0b00010000
+#define C_32BIT           0b00011000
+#define C_ALARM_STATUS    0b00100000
+#define C_MIN_ALARM       0b01000000
+#define C_MAX_ALARM       0b10000000
+
+#define SEAHU_CD_ERROR_REPEAT 5 // number of repeat cmd if get error
+
 //#define OneWireMaster0xCDDebug // enable debug
 
 // union representating more types of actual value
@@ -69,12 +84,18 @@ public:
     uint8_t get_status_byte(uint8_t section);
 
     /*
-     * SET INTO STATUS BYTE
+     * SET INTO STATUS (CONTROL) BYTE
      * if no comunication  store new value into global value - controlByte
      * return true of false
     */
     uint8_t set_status_byte(uint8_t B);
     uint8_t set_status_byte(uint8_t B, uint8_t section);
+    uint8_t get_control_byte() {
+        return get_status_byte();
+    }
+    uint8_t get_control_byte(uint8_t section){
+        return get_status_byte(section);
+    }
 
     /*
      * PRINT STATUS BYTE
@@ -179,7 +200,8 @@ public:
     *  Delay:    is time to process 1B data sumDelay=Delay*len
     *  return:   true or false
     */
-    bool read_uni(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, uint8_t Delay);
+    bool read_uni(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, unsigned int Delay);
+    bool read_uni_only_one(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, unsigned int Delay);
 
     /*
     * WRITE sekvencion over 1-Wire for device with family code 0xCD
@@ -191,7 +213,8 @@ public:
     *  Delay:    is time to process 1B data sumDelay=Delay*len
     *  return:   true or false
     */
-    bool write_uni(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, uint8_t Delay);
+    bool write_uni(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, unsigned int Delay);
+    bool write_uni_only_one(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, unsigned int Delay);
 
     /*
      * GET/SET  VALUE over 1-Wire

@@ -106,7 +106,7 @@ unsigned long last_value_rgbw=0;
 OneWireSlave0xCD ow; //define One Wire object
 
 // factory description is good to store in PROGMEM to save RAM
-const char device_description[] PROGMEM = "SEAHU SH025a 1-Wire to RGBW C2020 by Ing. Ondrej Lycka C2022    ";
+const char device_description[] PROGMEM = "SEAHU SH025a 1-Wire to RGBW                                      ";
 const char rgbw[] PROGMEM               = "RGBW {0-4294967295} value=Blue+256*Green+65536*Red+16777216*white";
 const char duration[] PROGMEM           = "Time [x.001 s] The time of change RGB1 <0=flah >0=fluent         ";
 const char repeat[] PROGMEM             = "Counter {-1 - 2147483647} Repeat RGB1. O=no repeat -1=to infinity";

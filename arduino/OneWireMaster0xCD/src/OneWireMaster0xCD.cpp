@@ -348,7 +348,7 @@ bool OneWireMaster0xCD::set_note(char buf[], uint8_t section){
  * get section description (!len of buf must be min 64 !)
  */
 bool OneWireMaster0xCD::get_description(char buf[]){
-  if (read_uni(0xF7, &section , buf, 64, 500)==false) return false;
+  if (read_uni(0xF7, &section , buf, 64, 700)==false) return false;
   #ifdef OneWireMaster0xCDDebug
   Serial.println(buf);
   #endif
@@ -381,7 +381,15 @@ bool OneWireMaster0xCD::get_device_description(char buf[]){
 /*
 * READ sekvencion over 1-Wire for device with family code 0xCD
 */
-bool OneWireMaster0xCD::read_uni(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, uint8_t Delay){
+bool OneWireMaster0xCD::read_uni(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, unsigned int Delay){
+  uint8_t errors;
+  for ( errors=0; errors<SEAHU_CD_ERROR_REPEAT; errors++){
+    if (read_uni_only_one(cmd, section , buf, len, Delay)==true) return true;
+  }
+  return false;
+}
+
+bool OneWireMaster0xCD::read_uni_only_one(uint8_t cmd, uint8_t *section , void *buf, uint8_t len, unsigned int Delay){
   uint16_t crc_read;
   uint16_t crc_calc;
   uint16_t pokus=0xBBAA;
@@ -431,7 +439,15 @@ bool OneWireMaster0xCD::read_uni(uint8_t cmd, uint8_t *section , void *buf, uint
 /*
 * WRITE sekvencion over 1-Wire for device with family code 0xCD
 */
-bool OneWireMaster0xCD::write_uni(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, uint8_t Delay){
+bool OneWireMaster0xCD::write_uni(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, unsigned int Delay){
+  uint8_t errors;
+  for ( errors=0; errors<SEAHU_CD_ERROR_REPEAT; errors++){
+    if (write_uni_only_one(cmd, section, buf, len, Delay)==true) return true;
+  }
+  return false;
+}
+
+bool OneWireMaster0xCD::write_uni_only_one(uint8_t cmd, uint8_t *section, void *buf, uint8_t len, unsigned int Delay){
   uint16_t crc_calc;
   uint8_t confirm;
   #ifdef OneWireMaster0xCDDebug

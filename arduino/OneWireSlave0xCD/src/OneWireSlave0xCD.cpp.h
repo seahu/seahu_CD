@@ -190,7 +190,7 @@ void cmd_0x44__finish(){
         uint8_t control= (p_sections_+i)->control;
         (p_sections_+i)->control=control & 0b11111110; // write 0 into read flag - mean not ready for read date ecause measure now
         (p_sections_+i)->measreCmd(false); // run custom measure function
-        (p_sections_+i)->control=control;
+        //(p_sections_+i)->control=control;
       }
     }
   }
@@ -200,7 +200,7 @@ void cmd_0x44__finish(){
       uint8_t control= (p_sections_+actual_section_)->control;
       (p_sections_+actual_section_)->control=control & 0b11111110; // write 0 into read flag - mean not ready for read date ecause measure now
       (p_sections_+actual_section_)->measreCmd(false); // run custom measure function
-      (p_sections_+actual_section_)->control=control;
+      //(p_sections_+actual_section_)->control=control;
     }
   }
   ow__.waitToCmd();
@@ -408,7 +408,7 @@ void OneWireSlave0xCD::write_new_value(uint8_t section, union value0xCD mewValue
     case C_BOOL:   // 0b00001000
       if ( control & 0b01000000 ) alarm=alarm || ( mewValue.u32<=minValue.u32 );  // <
       if ( control & 0b10000000 ) alarm=alarm || ( mewValue.u32>=maxValue.u32 );  // >
-      (p_sections_+section)->actualValue.u32=mewValue.u32; // save new value
+      (p_sections_+section)->actualValue.u32=mewValue.b; // save new value
       break;
     case C_U32BIT:  // 0b00010000
       if ( control & 0b01000000 ) alarm=alarm || ( mewValue.u32<=minValue.u32 );
@@ -422,7 +422,7 @@ void OneWireSlave0xCD::write_new_value(uint8_t section, union value0xCD mewValue
       break;
   }
   (p_sections_+section)->control|=C_READ; // clear flag for new measurment
-  (p_sections_+section)->control|=C_ALARM_STATUS; // set section alarm
+  if (alarm==true) (p_sections_+section)->control|=C_ALARM_STATUS; // set section alarm
   //(p_sections_+section)->alarm=alarm; // set section alarm
   _OW_alarm|=alarm; // set global alarm
 }
@@ -442,14 +442,14 @@ void OneWireSlave0xCD::foreground_measure(bool all)
   for ( uint8_t i=0; i<number_of_sections_; i++ ){ // for all sections
     if ( (p_sections_+i)->measreCmd==NULL) continue; // section have not measure function
     if (all==false) { // not force for all sections
-      if ( (p_sections_+i)->control & ~C_READ ) { // is not clear C_READ (section is not flag to new measurment)
-        if (( (p_sections_+i)->control & 0b11000000)==0) continue; // section have not set alarm
+      if ( ((p_sections_+i)->control & C_READ)!=0 ) { // is not clear C_READ (section is not flag to new measurment)
+        if ( ((p_sections_+i)->control & 0b11000000)==0) continue; // and section have not set alarm
       }
     }
-    // sectin has set check alarm of set flag for new measurment
-    uint8_t control=(p_sections_+i)->control;
-    (p_sections_+i)->control&=~C_READ; // write 0 into read flag - mean not ready for read date ecause measure now
-    (p_sections_+i)->measreCmd(true); // un custom measure function param= true means that does not matter on measurment time.
+    // sectin has set check alarm or set flag for new measurment
+    //uint8_t control=(p_sections_+i)->control;
+    //delete this line becouse on foreground measure I no need set measured flag (p_sections_+i)->control&=~C_READ; // write 0 into read flag - mean not ready for read date ecause measure now
+    (p_sections_+i)->measreCmd(true); // run custom measure function param= true means that does not matter on measurment time.
   }
 }
 
