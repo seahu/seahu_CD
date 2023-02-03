@@ -64,22 +64,22 @@
 
                                                                                                 / \ +5V
                                                                                                  |
-                                                                                 +---------------+
-                                                                                 |               |
-                                                                                 |               |
-                                                                                 |              +-+ -> IR diode
-                                                                                 |              \ / ->
-                                                           +------+--------------|              ---
-                                                           |      | 100nF        | 450uF         |
-                                                           |    -----          -----             |
-                                    AVR_ATtiny85           |    -----          -----             |
-                                   +------\/-----+         |      |              |              +-+
-                    (RESET) N/U 1 -|1 PB5   VCC 8|- 8 VCC--+     ---            ---             | |100R
-       PIN_OUT <-------- A3  D3 2 -|2 PB3   PB2 7|- 7 D2 A1 (SLC,INT0) ----> 1-Wire             +-+
-       PIN_IN  <- (OC1B) A2 #D4 3 -|3 PB4   PB1 6|- 6 #D1   (MISO,OC0B,AIN1,OC1A)----------------+      / \+5V
-                         GND D5 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)--+                 |   +-+
-                                   +-------------+                                     |                 +---| |
-                                                                                       +---------------------| | <- IR sensor
+   / \ +5V                                                                       +---------------+
+    |                                                                            |               |
+   +-+                                                                           |               |
+   | |                                                                           |              +-+ -> IR diode
+   +-+                                                                           |              \ / ->
+    |                                                      +------+--------------|              ---
+   +-+  -> LED                                             |      | 100nF        | 450uF         |
+   \ /  ->                                                 |    -----          -----             |
+   ---                              AVR_ATtiny85           |    -----          -----             |
+    |                              +------\/-----+         |      |              |              +-+
+    |               (RESET) N/U 1 -|1 PB5   VCC 8|- 8 VCC--+     ---            ---             | |100R
+  +---- PIN_OUT <------- A3  D3 2 -|2 PB3   PB2 7|- 7 D2 A1 (SLC,INT0) ----> 1-Wire             +-+
+  | +- PIN_IN  <- (OC1B) A2 #D4 3 -|3 PB4   PB1 6|- 6 #D1   (MISO,OC0B,AIN1,OC1A)----------------+      / \+5V
+  |                      GND D5 4 -|4 GND   PB0 5|- 5 #D0   (MOSI,OC0A,AIN0,SDA,AREF)                    |   +-+
+  |                                +-------------+                                                       +---| |
+  +------------------------------------------------------------------------------------+---------------------| | <- IR sensor
                                                                                                       GND ---| | <-
                                                                                                              +-+
                                                                                                          
@@ -96,9 +96,15 @@
 
 // platform settings
 #ifdef __AVR_ATtiny85__
-  #define PIN_RECV 0
+  // first prototype
+  //#define PIN_RECV 4
+  //#define PIN_IR_LED 1
+  //#define PIN_LED 3
+  //#define Timer0_OCR0A // force own (no default) MCU settings
+  // secound prototype
+  #define PIN_RECV 3
   #define PIN_IR_LED 1
-  #define PIN_LED 3
+  #define PIN_LED 4
   #define Timer0_OCR0A // force own (no default) MCU settings
 #endif
 #ifdef __AVR_ATmega328P__
@@ -400,9 +406,7 @@ void write_data_to_ir_buf(){
   data_to_hex(ir_buf);
   #ifdef __DEBUG__
     Serial.println(ir_buf);
-  #endif
-  #ifdef __DEBUG__
-    //print_bin_data(){; // in debug mode print binary data
+     //print_bin_data(){; // in debug mode print binary data
     Serial.println("");
   #endif
   sections[IR_BUF].control|=C_ALARM_STATUS; // set alarm
